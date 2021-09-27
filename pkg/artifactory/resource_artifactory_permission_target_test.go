@@ -145,7 +145,7 @@ func TestGitHubIssue126(test *testing.T) {
 	resource.Test(test, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(test) },
 		CheckDestroy: testPermissionTargetCheckDestroy(permFqrn),
-		Providers:    testAccProviders,
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: foo,
@@ -171,7 +171,7 @@ func TestAccPermissionTarget_full(test *testing.T) {
 	resource.Test(test, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(test) },
 		CheckDestroy: testPermissionTargetCheckDestroy(permFqrn),
-		Providers:    testAccProviders,
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: executeTemplate(permFqrn, permissionFull, tempStruct),
@@ -205,7 +205,7 @@ func TestAccPermissionTarget_addBuild(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		CheckDestroy: testPermissionTargetCheckDestroy(permFqrn),
-		Providers:    testAccProviders,
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: executeTemplate(permFqrn, permissionNoIncludes, tempStruct),

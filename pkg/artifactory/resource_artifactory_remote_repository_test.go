@@ -30,7 +30,7 @@ func TestAccLocalAllowDotsAndDashesInKeyGH129(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		CheckDestroy: testAccCheckRepositoryDestroy(fqrn),
-		Providers:    testAccProviders,
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: localRepositoryBasic,
@@ -112,7 +112,7 @@ func TestAccRemoteRepositoryChangeConfigGH148(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		CheckDestroy: testAccCheckRepositoryDestroy(fqrn),
-		Providers:    testAccProviders,
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: executeTemplate("one", step1, map[string]interface{}{
@@ -153,7 +153,7 @@ func TestAccRemoteRepository_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		CheckDestroy: testAccCheckRepositoryDestroy(fqrn),
-		Providers:    testAccProviders,
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(remoteRepoBasic, name, name),
@@ -185,7 +185,7 @@ func TestAccRemoteRepository_nugetNew(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		CheckDestroy: testAccCheckRepositoryDestroy(fqrn),
-		Providers:    testAccProviders,
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(remoteRepoNuget, name, name),
@@ -254,7 +254,7 @@ func mkRemoteRepoTestCase(repoType string, t *testing.T) (*testing.T, resource.T
 	name := fmt.Sprintf("terraform-remote-test-repo-full%d", id)
 	fqrn := fmt.Sprintf("artifactory_remote_repository.%s", name)
 	return t, resource.TestCase{
-		Providers:    testAccProviders,
+		ProviderFactories: testAccProviders,
 		PreCheck:     func() { testAccPreCheck(t) },
 		CheckDestroy: testAccCheckRepositoryDestroy(fqrn),
 		Steps: []resource.TestStep{
@@ -344,7 +344,7 @@ func TestAccRemoteRepository_generic_with_propagate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		CheckDestroy: testAccCheckRepositoryDestroy(fqrn),
-		Providers:    testAccProviders,
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(remoteGenericRepoBasicWithPropagate, name, name),

@@ -4,51 +4,51 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"net/http"
+	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-// Test was temporarily removed from the test suite
-//func TestAccWatch_basic(t *testing.T) {
-//	watchName := "test-watch"
-//	policyName := "test-policy"
-//	watchDesc := "watch created by xray acceptance tests"
-//	resourceName := "xray_watch.test"
-//
-//	resource.Test(t, resource.TestCase{
-//		PreCheck:     func() { testAccPreCheck(t) },
-//		CheckDestroy: testAccCheckWatchDestroy,
-//		Providers:    testAccProviders,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: testAccXrayWatchBasic(watchName, watchDesc, policyName),
-//				Check: resource.ComposeTestCheckFunc(
-//					resource.TestCheckResourceAttr(resourceName, "name", watchName),
-//					resource.TestCheckResourceAttr(resourceName, "description", watchDesc),
-//					resource.TestCheckResourceAttr(resourceName, "resources.0.type", "all-repos"),
-//					resource.TestCheckResourceAttr(resourceName, "assigned_policies.0.name", policyName),
-//					resource.TestCheckResourceAttr(resourceName, "assigned_policies.0.type", "security"),
-//				),
-//			},
-//			{
-//				ResourceName:      resourceName,
-//				ImportState:       true,
-//				ImportStateVerify: false,
-//			},
-//			{
-//				Config: testAccXrayWatchUnassigned(policyName),
-//				Check: resource.ComposeTestCheckFunc(
-//					testAccCheckWatchDoesntExist(resourceName),
-//				),
-//			},
-//		},
-//	})
-//}
+func TestAccWatch_basic(t *testing.T) {
+	watchName := "test-watch"
+	policyName := "test-policy"
+	watchDesc := "watch created by xray acceptance tests"
+	resourceName := "xray_watch.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		CheckDestroy: testAccCheckWatchDestroy,
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccXrayWatchBasic(watchName, watchDesc, policyName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", watchName),
+					resource.TestCheckResourceAttr(resourceName, "description", watchDesc),
+					resource.TestCheckResourceAttr(resourceName, "resources.0.type", "all-repos"),
+					resource.TestCheckResourceAttr(resourceName, "assigned_policies.0.name", policyName),
+					resource.TestCheckResourceAttr(resourceName, "assigned_policies.0.type", "security"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+			},
+			{
+				Config: testAccXrayWatchUnassigned(policyName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckWatchDoesntExist(resourceName),
+				),
+			},
+		},
+	})
+}
 
 // These two tests are commented out because repoName and binMgrId must be real values but neither are terraformable so can't be put into these tests
 // I have tested this with some real values, but for obvious privacy reasons am not leaving those real values in here
-/*func TestAccWatch_filters(t *testing.T) {
+func TestAccWatch_filters(t *testing.T) {
 	watchName := "test-watch"
 	watchDesc := "watch created by xray acceptance tests"
 	repoName := "repo-name"
@@ -62,7 +62,7 @@ import (
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		CheckDestroy: testAccCheckWatchDestroy,
-		Providers:    testAccProviders,
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccXrayWatchFilters(watchName, watchDesc, repoName, binMgrId, policyName, filterValue),
@@ -109,7 +109,7 @@ func TestAccWatch_builds(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		CheckDestroy: testAccCheckWatchDestroy,
-		Providers:    testAccProviders,
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccXrayWatchBuilds(watchName, watchDesc, policyName, binMgrId),
@@ -134,7 +134,7 @@ func TestAccWatch_builds(t *testing.T) {
 			},
 		},
 	})
-}*/
+}
 
 func testAccCheckWatchDoesntExist(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -147,7 +147,9 @@ func testAccCheckWatchDoesntExist(resourceName string) resource.TestCheckFunc {
 }
 
 func testAccCheckWatchDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*resty.Client)
+	provider, _ := testAccProviders["artifactory"]()
+
+	client := provider.Meta().(*resty.Client)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type == "xray_watch" {
@@ -245,84 +247,84 @@ resource "xray_policy" "test" {
 }
 
 // You seemingly can't do filters with all-repos - it's an example in the docs but doesn't seem possible via the web ui
-//func testAccXrayWatchFilters(name, description, repoName, binMgrId, policyName, filterValue string) string {
-//	return fmt.Sprintf(`
-//resource "xray_policy" "test" {
-//	name  = "%s"
-//	description = "test policy description"
-//	type = "security"
-//
-//	rules {
-//		name = "rule-name"
-//		priority = 1
-//		criteria {
-//			min_severity = "High"
-//		}
-//		actions {
-//			block_download {
-//				unscanned = true
-//				active = true
-//			}
-//		}
-//	}
-//}
-//
-//resource "xray_watch" "test" {
-//	name  = "%s"
-//	description = "%s"
-//	resources {
-//		type = "repository"
-//		name = "%s"
-//		bin_mgr_id = "%s"
-//		filters {
-//			type = "package-type"
-//			value = "%s"
-//		}
-//	}
-//	assigned_policies {
-//		name = xray_policy.test.name
-//		type = "security"
-//	}
-//}
-//`, policyName, name, description, repoName, binMgrId, filterValue)
-//}
-//
-//func testAccXrayWatchBuilds(name, description, policyName, binMgrId string) string {
-//	return fmt.Sprintf(`
-//resource "xray_policy" "test" {
-//	name  = "%s"
-//	description = "test policy description"
-//	type = "security"
-//
-//	rules {
-//		name = "rule-name"
-//		priority = 1
-//		criteria {
-//			min_severity = "High"
-//		}
-//		actions {
-//			block_download {
-//				unscanned = true
-//				active = true
-//			}
-//		}
-//	}
-//}
-//
-//resource "xray_watch" "test" {
-//	name = "%s"
-//	description = "%s"
-//	resources {
-//		type = "all-builds"
-//		name = "All Builds"
-//		bin_mgr_id = "%s"
-//	}
-//	assigned_policies {
-//		name = xray_policy.test.name
-//		type = "security"
-//	}
-//}
-//`, policyName, name, description, binMgrId)
-//}
+func testAccXrayWatchFilters(name, description, repoName, binMgrId, policyName, filterValue string) string {
+	return fmt.Sprintf(`
+resource "xray_policy" "test" {
+	name  = "%s"
+	description = "test policy description"
+	type = "security"
+
+	rules {
+		name = "rule-name"
+		priority = 1
+		criteria {
+			min_severity = "High"
+		}
+		actions {
+			block_download {
+				unscanned = true
+				active = true
+			}
+		}
+	}
+}
+
+resource "xray_watch" "test" {
+	name  = "%s"
+	description = "%s"
+	resources {
+		type = "repository"
+		name = "%s"
+		bin_mgr_id = "%s"
+		filters {
+			type = "package-type"
+			value = "%s"
+		}
+	}
+	assigned_policies {
+		name = xray_policy.test.name
+		type = "security"
+	}
+}
+`, policyName, name, description, repoName, binMgrId, filterValue)
+}
+
+func testAccXrayWatchBuilds(name, description, policyName, binMgrId string) string {
+	return fmt.Sprintf(`
+resource "xray_policy" "test" {
+	name  = "%s"
+	description = "test policy description"
+	type = "security"
+
+	rules {
+		name = "rule-name"
+		priority = 1
+		criteria {
+			min_severity = "High"
+		}
+		actions {
+			block_download {
+				unscanned = true
+				active = true
+			}
+		}
+	}
+}
+
+resource "xray_watch" "test" {
+	name = "%s"
+	description = "%s"
+	resources {
+		type = "all-builds"
+		name = "All Builds"
+		bin_mgr_id = "%s"
+	}
+	assigned_policies {
+		name = xray_policy.test.name
+		type = "security"
+	}
+}
+`, policyName, name, description, binMgrId)
+}
 
 // TODO for bonus points - test builds with complex filters eg "filters":[{"type":"ant-patterns","value":{"ExcludePatterns":[],"IncludePatterns":["*"]}

@@ -31,7 +31,7 @@ resource "artifactory_oauth_settings" "oauth" {
 func TestAccOauthSettings_full(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		CheckDestroy: testAccOauthSettingsDestroy("artifactory_oauth_settings.oauth"),
-		Providers:    testAccProviders,
+		ProviderFactories: testAccProviders,
 
 		Steps: []resource.TestStep{
 			{
@@ -80,7 +80,7 @@ resource "artifactory_oauth_settings" "oauth" {
 func TestAccOauthSettings_multipleProviders(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		CheckDestroy: testAccOauthSettingsDestroy("artifactory_oauth_settings.oauth"),
-		Providers:    testAccProviders,
+		ProviderFactories: testAccProviders,
 
 		Steps: []resource.TestStep{
 			{

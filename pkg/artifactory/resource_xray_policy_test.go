@@ -12,172 +12,168 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-// Test was temporarily removed from the test suite
-//func TestAccPolicy_basic(t *testing.T) {
-//	policyName := "terraform-test-policy"
-//	policyDesc := "policy created by xray acceptance tests"
-//	ruleName := "test-security-rule"
-//	resourceName := "xray_policy.test"
-//
-//	resource.Test(t, resource.TestCase{
-//		PreCheck:     func() { testAccPreCheck(t) },
-//		CheckDestroy: testAccCheckPolicyDestroy,
-//		Providers:    testAccProviders,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: testAccXrayPolicyBasic(policyName, policyDesc, ruleName),
-//				Check: resource.ComposeTestCheckFunc(
-//					resource.TestCheckResourceAttr(resourceName, "name", policyName),
-//					resource.TestCheckResourceAttr(resourceName, "description", policyDesc),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.name", ruleName),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.priority", "1"),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.min_severity", "High"),
-//				),
-//			},
-//			{
-//				ResourceName:      resourceName,
-//				ImportState:       true,
-//				ImportStateVerify: false, // TODO: figure out why this doesn't work
-//			},
-//		},
-//	})
-//}
+func TestAccPolicy_basic(t *testing.T) {
+	policyName := "terraform-test-policy"
+	policyDesc := "policy created by xray acceptance tests"
+	ruleName := "test-security-rule"
+	resourceName := "xray_policy.test"
 
-// Test was temporarily removed from the test suite
-//func TestAccPolicy_cvssRange(t *testing.T) {
-//	policyName := "terraform-test-policy"
-//	policyDesc := "policy created by xray acceptance tests"
-//	ruleName := "test-security-rule"
-//	rangeTo := 4
-//	updatedRangeTo := 2
-//	resourceName := "xray_policy.test"
-//
-//	resource.Test(t, resource.TestCase{
-//		PreCheck:     func() { testAccPreCheck(t) },
-//		CheckDestroy: testAccCheckPolicyDestroy,
-//		Providers:    testAccProviders,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: testAccXrayPolicyCVSSRange(policyName, policyDesc, ruleName, rangeTo),
-//				Check: resource.ComposeTestCheckFunc(
-//					resource.TestCheckResourceAttr(resourceName, "name", policyName),
-//					resource.TestCheckResourceAttr(resourceName, "description", policyDesc),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.name", ruleName),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.priority", "1"),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.cvss_range.0.to", fmt.Sprintf("%d", rangeTo)),
-//				),
-//			},
-//			{
-//				ResourceName:      resourceName,
-//				ImportState:       true,
-//				ImportStateVerify: false,
-//			},
-//			{
-//				Config: testAccXrayPolicyCVSSRange(policyName, policyDesc, ruleName, updatedRangeTo),
-//				Check: resource.ComposeTestCheckFunc(
-//					resource.TestCheckResourceAttr(resourceName, "name", policyName),
-//					resource.TestCheckResourceAttr(resourceName, "description", policyDesc),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.name", ruleName),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.priority", "1"),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.cvss_range.0.to", fmt.Sprintf("%d", updatedRangeTo)),
-//				),
-//			},
-//		},
-//	})
-//}
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		CheckDestroy: testAccCheckPolicyDestroy(policyName),
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccXrayPolicyBasic(policyName, policyDesc, ruleName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", policyName),
+					resource.TestCheckResourceAttr(resourceName, "description", policyDesc),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.name", ruleName),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.priority", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.min_severity", "High"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false, // TODO: figure out why this doesn't work
+			},
+		},
+	})
+}
 
-// Test was temporarily removed from the test suite
-//func TestAccPolicy_allActions(t *testing.T) {
-//	policyName := "terraform-test-policy"
-//	policyDesc := "policy created by xray acceptance tests"
-//	ruleName := "test-security-rule"
-//	actionMail := "test@example.com"
-//	updatedDesc := "updated policy description"
-//	updatedRuleName := "test-updated-rule"
-//	updatedMail := "test2@example.com"
-//	resourceName := "xray_policy.test"
-//
-//	resource.Test(t, resource.TestCase{
-//		PreCheck:     func() { testAccPreCheck(t) },
-//		CheckDestroy: testAccCheckPolicyDestroy,
-//		Providers:    testAccProviders,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: testAccXrayPolicyAllActions(policyName, policyDesc, ruleName, actionMail),
-//				Check: resource.ComposeTestCheckFunc(
-//					resource.TestCheckResourceAttr(resourceName, "name", policyName),
-//					resource.TestCheckResourceAttr(resourceName, "description", policyDesc),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.name", ruleName),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.priority", "1"),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.min_severity", "High"),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.actions.0.fail_build", "true"),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.actions.0.mails.0", actionMail),
-//				),
-//			},
-//			{
-//				ResourceName:      resourceName,
-//				ImportState:       true,
-//				ImportStateVerify: false,
-//			},
-//			{
-//				Config: testAccXrayPolicyAllActions(policyName, updatedDesc, updatedRuleName, updatedMail),
-//				Check: resource.ComposeTestCheckFunc(
-//					resource.TestCheckResourceAttr(resourceName, "name", policyName),
-//					resource.TestCheckResourceAttr(resourceName, "description", updatedDesc),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.name", updatedRuleName),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.priority", "1"),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.min_severity", "High"),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.actions.0.fail_build", "true"),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.actions.0.mails.0", updatedMail),
-//				),
-//			},
-//		},
-//	})
-//}
-// Test was temporarily removed from the test suite
-//func TestAccPolicy_licenseCriteria(t *testing.T) {
-//	policyName := "terraform-test-policy"
-//	policyDesc := "policy created by xray acceptance tests"
-//	ruleName := "test-security-rule"
-//	allowedLicense := "BSD-4-Clause"
-//	bannedLicense1 := "0BSD"
-//	bannedLicense2 := "diffmark"
-//	resourceName := "xray_policy.test"
-//
-//	resource.Test(t, resource.TestCase{
-//		PreCheck:     func() { testAccPreCheck(t) },
-//		CheckDestroy: testAccCheckPolicyDestroy,
-//		Providers:    testAccProviders,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: testAccXrayPolicyLicense(policyName, policyDesc, ruleName, allowedLicense),
-//				Check: resource.ComposeTestCheckFunc(
-//					resource.TestCheckResourceAttr(resourceName, "name", policyName),
-//					resource.TestCheckResourceAttr(resourceName, "description", policyDesc),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.name", ruleName),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.priority", "1"),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.allowed_licenses.0", allowedLicense),
-//				),
-//			},
-//			{
-//				ResourceName:      resourceName,
-//				ImportState:       true,
-//				ImportStateVerify: false,
-//			},
-//			{
-//				Config: testAccXrayPolicyLicenseBanned(policyName, policyDesc, ruleName, bannedLicense1, bannedLicense2),
-//				Check: resource.ComposeTestCheckFunc(
-//					resource.TestCheckResourceAttr(resourceName, "name", policyName),
-//					resource.TestCheckResourceAttr(resourceName, "description", policyDesc),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.name", ruleName),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.priority", "1"),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.banned_licenses.0", bannedLicense1),
-//					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.banned_licenses.1", bannedLicense2),
-//				),
-//			},
-//		},
-//	})
-//}
+func TestAccPolicy_cvssRange(t *testing.T) {
+	policyName := "terraform-test-policy"
+	policyDesc := "policy created by xray acceptance tests"
+	ruleName := "test-security-rule"
+	rangeTo := 4
+	updatedRangeTo := 2
+	resourceName := "xray_policy.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		CheckDestroy: testAccCheckPolicyDestroy(policyName),
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccXrayPolicyCVSSRange(policyName, policyDesc, ruleName, rangeTo),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", policyName),
+					resource.TestCheckResourceAttr(resourceName, "description", policyDesc),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.name", ruleName),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.priority", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.cvss_range.0.to", fmt.Sprintf("%d", rangeTo)),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+			},
+			{
+				Config: testAccXrayPolicyCVSSRange(policyName, policyDesc, ruleName, updatedRangeTo),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", policyName),
+					resource.TestCheckResourceAttr(resourceName, "description", policyDesc),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.name", ruleName),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.priority", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.cvss_range.0.to", fmt.Sprintf("%d", updatedRangeTo)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccPolicy_allActions(t *testing.T) {
+	policyName := "terraform-test-policy"
+	policyDesc := "policy created by xray acceptance tests"
+	ruleName := "test-security-rule"
+	actionMail := "test@example.com"
+	updatedDesc := "updated policy description"
+	updatedRuleName := "test-updated-rule"
+	updatedMail := "test2@example.com"
+	resourceName := "xray_policy.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		CheckDestroy: testAccCheckPolicyDestroy(policyName),
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccXrayPolicyAllActions(policyName, policyDesc, ruleName, actionMail),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", policyName),
+					resource.TestCheckResourceAttr(resourceName, "description", policyDesc),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.name", ruleName),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.priority", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.min_severity", "High"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.actions.0.fail_build", "true"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.actions.0.mails.0", actionMail),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+			},
+			{
+				Config: testAccXrayPolicyAllActions(policyName, updatedDesc, updatedRuleName, updatedMail),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", policyName),
+					resource.TestCheckResourceAttr(resourceName, "description", updatedDesc),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.name", updatedRuleName),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.priority", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.min_severity", "High"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.actions.0.fail_build", "true"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.actions.0.mails.0", updatedMail),
+				),
+			},
+		},
+	})
+}
+func TestAccPolicy_licenseCriteria(t *testing.T) {
+	policyName := "terraform-test-policy"
+	policyDesc := "policy created by xray acceptance tests"
+	ruleName := "test-security-rule"
+	allowedLicense := "BSD-4-Clause"
+	bannedLicense1 := "0BSD"
+	bannedLicense2 := "diffmark"
+	resourceName := "xray_policy.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		CheckDestroy: testAccCheckPolicyDestroy(policyName),
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccXrayPolicyLicense(policyName, policyDesc, ruleName, allowedLicense),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", policyName),
+					resource.TestCheckResourceAttr(resourceName, "description", policyDesc),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.name", ruleName),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.priority", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.allowed_licenses.0", allowedLicense),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+			},
+			{
+				Config: testAccXrayPolicyLicenseBanned(policyName, policyDesc, ruleName, bannedLicense1, bannedLicense2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", policyName),
+					resource.TestCheckResourceAttr(resourceName, "description", policyDesc),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.name", ruleName),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.priority", "1"),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.banned_licenses.0", bannedLicense1),
+					resource.TestCheckResourceAttr(resourceName, "rules.0.criteria.0.banned_licenses.1", bannedLicense2),
+				),
+			},
+		},
+	})
+}
 
 func TestAccPolicy_badLicenseCriteria(t *testing.T) {
 	policyName := "terraform-test-policy"
@@ -187,8 +183,8 @@ func TestAccPolicy_badLicenseCriteria(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		CheckDestroy: testAccCheckPolicyDestroy,
-		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckPolicyDestroy(policyName),
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccXrayPolicy_badLicense(policyName, policyDesc, ruleName, rangeTo),
@@ -206,8 +202,8 @@ func TestAccPolicy_badSecurityCriteria(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		CheckDestroy: testAccCheckPolicyDestroy,
-		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckPolicyDestroy(policyName),
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccXrayPolicy_badSecurity(policyName, policyDesc, ruleName, allowedLicense),
@@ -218,16 +214,16 @@ func TestAccPolicy_badSecurityCriteria(t *testing.T) {
 }
 
 // This should be uncommented when someone figures out how to deal with this (see comment in expandActions in the provider)
-/*func TestAccPolicy_missingBlockDownloads(t *testing.T) {
-	policyName   := "terraform-test-policy"
-	policyDesc   := "policy created by xray acceptance tests"
-	ruleName     := "test-security-rule"
+func TestAccPolicy_missingBlockDownloads(t *testing.T) {
+	policyName := "terraform-test-policy"
+	policyDesc := "policy created by xray acceptance tests"
+	ruleName := "test-security-rule"
 	resourceName := "xray_policy.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		CheckDestroy: testAccCheckPolicyDestroy,
-		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckPolicyDestroy(policyName),
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccXrayPolicy_missingBlockDownloads(policyName, policyDesc, ruleName),
@@ -245,31 +241,32 @@ func TestAccPolicy_badSecurityCriteria(t *testing.T) {
 			},
 		},
 	})
-}*/
+}
+func testAccCheckPolicyDestroy(id string) func(*terraform.State) error {
+	return func(s *terraform.State) error {
 
-func testAccCheckPolicyDestroy(s *terraform.State) error {
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type == "xray_policy" {
-
-			policy, resp, err := getPolicy(rs.Primary.ID, testAccProvider.Meta().(*resty.Client))
-
-			if err != nil {
-				if resp != nil {
-					if resp.StatusCode() == http.StatusInternalServerError &&
-						err.Error() == fmt.Sprintf("{\"error\":\"Failed to find Policy %s\"}", rs.Primary.ID) {
-						continue
-					}
-					if resp.StatusCode() == http.StatusNotFound {
-						continue
-					}
-				}
-				return err
-			}
-			return fmt.Errorf("error: Policy %s still exists %s", rs.Primary.ID, *policy.Name)
+		rs, ok := s.RootModule().Resources[id]
+		if !ok {
+			return fmt.Errorf("err: Resource id[%s] not found", id)
 		}
+		provider, _ := testAccProviders["artifactory"]()
+
+		policy, resp, err := getPolicy(rs.Primary.ID, provider.Meta().(*resty.Client))
+
+		if err != nil {
+			if resp != nil {
+				if resp.StatusCode() == http.StatusInternalServerError &&
+					err.Error() == fmt.Sprintf("{\"error\":\"Failed to find Policy %s\"}", rs.Primary.ID) {
+					return nil
+				}
+				if resp.StatusCode() == http.StatusNotFound {
+					return nil
+				}
+			}
+			return err
+		}
+		return fmt.Errorf("error: Policy %s still exists %s", rs.Primary.ID, *policy.Name)
 	}
-	return nil
 }
 
 func testAccXrayPolicyBasic(name, description, ruleName string) string {
@@ -400,7 +397,26 @@ func testAccXrayPolicyLicenseBanned(name, description, ruleName, bannedLicense1,
 		}
 `, name, description, ruleName, bannedLicense1, bannedLicense2)
 }
+func testAccXrayPolicy_missingBlockDownloads(name, description, ruleName string) string {
+	return fmt.Sprintf(`
+resource "xray_policy" "test" {
+	name  = "%s"
+	description = "%s"
+	type = "security"
 
+	rules {
+		name = "%s"
+		priority = 1
+		criteria {
+			min_severity = "High"
+		}
+		actions {
+			fail_build = true
+		}
+	}
+}
+`, name, description, ruleName)
+}
 func testAccXrayPolicy_badLicense(name, description, ruleName string, rangeTo int) string {
 	return fmt.Sprintf(`
 resource "artifactory_xray_policy" "test" {
