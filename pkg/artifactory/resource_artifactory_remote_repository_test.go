@@ -9,10 +9,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
+
 func TestAccLocalAllowDotsAndDashesInKeyGH129(t *testing.T) {
 	_, fqrn, name := mkNames("terraform-local-test-repo-basic", "artifactory_remote_repository")
 
-	key := fmt.Sprintf("debian-remote.teleport%d",randomInt())
+	key := fmt.Sprintf("debian-remote.teleport%d", randomInt())
 	localRepositoryBasic := fmt.Sprintf(`
 		resource "artifactory_remote_repository" "%s" {
 			key              = "%s"
@@ -26,15 +27,15 @@ func TestAccLocalAllowDotsAndDashesInKeyGH129(t *testing.T) {
 				enabled = false
 			}
 		}
-	`,name, key )
+	`, name, key)
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		CheckDestroy: testAccCheckRepositoryDestroy(fqrn),
+		PreCheck:          func() { testAccPreCheck(t) },
+		CheckDestroy:      testAccCheckRepositoryDestroy(fqrn),
 		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: localRepositoryBasic,
-				Check: resource.TestCheckResourceAttr(fqrn, "key", key),
+				Check:  resource.TestCheckResourceAttr(fqrn, "key", key),
 			},
 		},
 	})
@@ -51,8 +52,8 @@ func TestKeyHasSpecialCharsFails(t *testing.T) {
 		}
 	`
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config:      failKey,
@@ -63,7 +64,7 @@ func TestKeyHasSpecialCharsFails(t *testing.T) {
 }
 
 func TestAccRemoteRepositoryChangeConfigGH148(t *testing.T) {
-	_,fqrn,name := mkNames("github-remote","artifactory_remote_repository")
+	_, fqrn, name := mkNames("github-remote", "artifactory_remote_repository")
 	const step1 = `
 		locals {
 		  allowed_github_repos = [
@@ -110,13 +111,13 @@ func TestAccRemoteRepositoryChangeConfigGH148(t *testing.T) {
 		}
 	`
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		CheckDestroy: testAccCheckRepositoryDestroy(fqrn),
+		PreCheck:          func() { testAccPreCheck(t) },
+		CheckDestroy:      testAccCheckRepositoryDestroy(fqrn),
 		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: executeTemplate("one", step1, map[string]interface{}{
-					"name" : name,
+					"name": name,
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(fqrn, "key", name),
@@ -126,7 +127,7 @@ func TestAccRemoteRepositoryChangeConfigGH148(t *testing.T) {
 			},
 			{
 				Config: executeTemplate("two", step2, map[string]interface{}{
-					"name" : name,
+					"name": name,
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(fqrn, "key", name),
@@ -151,8 +152,8 @@ func TestAccRemoteRepository_basic(t *testing.T) {
 		}
 	`
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		CheckDestroy: testAccCheckRepositoryDestroy(fqrn),
+		PreCheck:          func() { testAccPreCheck(t) },
+		CheckDestroy:      testAccCheckRepositoryDestroy(fqrn),
 		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -183,8 +184,8 @@ func TestAccRemoteRepository_nugetNew(t *testing.T) {
 	name := fmt.Sprintf("terraform-remote-test-repo-nuget%d", id)
 	fqrn := fmt.Sprintf("artifactory_remote_repository.%s", name)
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		CheckDestroy: testAccCheckRepositoryDestroy(fqrn),
+		PreCheck:          func() { testAccPreCheck(t) },
+		CheckDestroy:      testAccCheckRepositoryDestroy(fqrn),
 		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -255,8 +256,8 @@ func mkRemoteRepoTestCase(repoType string, t *testing.T) (*testing.T, resource.T
 	fqrn := fmt.Sprintf("artifactory_remote_repository.%s", name)
 	return t, resource.TestCase{
 		ProviderFactories: testAccProviders,
-		PreCheck:     func() { testAccPreCheck(t) },
-		CheckDestroy: testAccCheckRepositoryDestroy(fqrn),
+		PreCheck:          func() { testAccPreCheck(t) },
+		CheckDestroy:      testAccCheckRepositoryDestroy(fqrn),
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(remoteRepoFull, name, name, repoType),
@@ -313,8 +314,8 @@ func TestAccRemoteRepository_npm_with_propagate(t *testing.T) {
 		}
 	`
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config:      remoteNpmRepoBasicWithPropagate,
@@ -342,8 +343,8 @@ func TestAccRemoteRepository_generic_with_propagate(t *testing.T) {
 	name := fmt.Sprintf("terraform-remote-test-repo-basic%d", id)
 	fqrn := fmt.Sprintf("artifactory_remote_repository.%s", name)
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		CheckDestroy: testAccCheckRepositoryDestroy(fqrn),
+		PreCheck:          func() { testAccPreCheck(t) },
+		CheckDestroy:      testAccCheckRepositoryDestroy(fqrn),
 		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{

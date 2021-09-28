@@ -11,11 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-var testAccProviders = map[string]func() (*schema.Provider, error){
-	"artifactory": func() (*schema.Provider, error) {
-		return Provider(), nil
-	},
-}
+var testAccProviders = func() map[string]func() (*schema.Provider, error) {
+	provider := Provider()
+	return map[string]func() (*schema.Provider, error){
+		"artifactory": func() (*schema.Provider, error) {
+			return provider, nil
+		},
+	}
+}()
 
 func TestProvider(t *testing.T) {
 	if err := Provider().InternalValidate(); err != nil {
