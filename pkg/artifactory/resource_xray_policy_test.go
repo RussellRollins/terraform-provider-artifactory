@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccPolicy_basic(t *testing.T) {
-	policyName := "terraform-test-policy"
+	policyName := fmt.Sprintf("terraform-test-policy%d",randomInt())
 	policyDesc := "policy created by xray acceptance tests"
 	ruleName := "test-security-rule"
 	resourceName := "xray_policy.test"
@@ -43,7 +43,7 @@ func TestAccPolicy_basic(t *testing.T) {
 }
 
 func TestAccPolicy_cvssRange(t *testing.T) {
-	policyName := "terraform-test-policy"
+	policyName := fmt.Sprintf("terraform-test-policy%d",randomInt())
 	policyDesc := "policy created by xray acceptance tests"
 	ruleName := "test-security-rule"
 	rangeTo := 4
@@ -85,7 +85,7 @@ func TestAccPolicy_cvssRange(t *testing.T) {
 }
 
 func TestAccPolicy_allActions(t *testing.T) {
-	policyName := "terraform-test-policy"
+	policyName := fmt.Sprintf("terraform-test-policy%d",randomInt())
 	policyDesc := "policy created by xray acceptance tests"
 	ruleName := "test-security-rule"
 	actionMail := "test@example.com"
@@ -132,7 +132,7 @@ func TestAccPolicy_allActions(t *testing.T) {
 	})
 }
 func TestAccPolicy_licenseCriteria(t *testing.T) {
-	policyName := "terraform-test-policy"
+	policyName := fmt.Sprintf("terraform-test-policy%d",randomInt())
 	policyDesc := "policy created by xray acceptance tests"
 	ruleName := "test-security-rule"
 	allowedLicense := "BSD-4-Clause"
@@ -176,7 +176,7 @@ func TestAccPolicy_licenseCriteria(t *testing.T) {
 }
 
 func TestAccPolicy_badLicenseCriteria(t *testing.T) {
-	policyName := "terraform-test-policy"
+	policyName := fmt.Sprintf("terraform-test-policy%d",randomInt())
 	policyDesc := "policy created by xray acceptance tests"
 	ruleName := "test-security-rule"
 	rangeTo := 4

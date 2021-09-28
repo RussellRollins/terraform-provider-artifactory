@@ -12,7 +12,7 @@ import (
 
 func TestAccWatch_basic(t *testing.T) {
 	watchName := "test-watch"
-	policyName := "test-policy"
+	policyName := fmt.Sprintf("test-policy%d",randomInt())
 	watchDesc := "watch created by xray acceptance tests"
 	resourceName := "xray_watch.test"
 
@@ -53,7 +53,7 @@ func TestAccWatch_filters(t *testing.T) {
 	watchDesc := "watch created by xray acceptance tests"
 	repoName := "repo-name"
 	binMgrId := "artifactory-id"
-	policyName := "test-policy"
+	policyName := fmt.Sprintf("test-policy%d",randomInt())
 	filterValue := "Debian"
 	updatedDesc := "updated watch description"
 	updatedValue := "Docker"
@@ -101,7 +101,7 @@ func TestAccWatch_filters(t *testing.T) {
 
 func TestAccWatch_builds(t *testing.T) {
 	watchName := "test-watch"
-	policyName := "test-policy"
+	policyName := fmt.Sprintf("test-policy%d",randomInt())
 	watchDesc := "watch created by xray acceptance tests"
 	binMgrId := "artifactory-id"
 	resourceName := "xray_watch.test"

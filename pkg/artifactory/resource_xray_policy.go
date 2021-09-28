@@ -14,8 +14,8 @@ import (
 // The current objective is to rip out any dependencies not from jfrog. So, jfrog doesn't support it
 // I need backward compatibility, and I can't have any other dependencies.
 type PolicyCVSSRange struct {
-	To   *int `json:"to,omitempty"`
-	From *int `json:"from,omitempty"`
+	To   float32 `json:"to"`
+	From float32 `json:"from"`
 }
 
 type PolicyRuleCriteria struct {
@@ -134,11 +134,11 @@ func resourceXrayPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"from": {
-													Type:     schema.TypeInt, // Yes, the xray web ui allows floats. The go library says ints. :(
+													Type:     schema.TypeFloat, // Yes, the xray web ui allows floats. The go library says ints. :(
 													Required: true,
 												},
 												"to": {
-													Type:     schema.TypeInt,
+													Type:     schema.TypeFloat,
 													Required: true,
 												},
 											},
@@ -311,8 +311,8 @@ func expandCVSSRange(l []interface{}) *PolicyCVSSRange {
 
 	m := l[0].(map[string]interface{})
 	cvssrange := &PolicyCVSSRange{
-		From: IntPtr(m["from"].(int)),
-		To:   IntPtr(m["to"].(int)),
+		From: m["from"].(float32),
+		To:   m["to"].(float32),
 	}
 	return cvssrange
 }
@@ -434,8 +434,8 @@ func flattenCVSSRange(cvss *PolicyCVSSRange) []interface{} {
 	}
 
 	m := map[string]interface{}{
-		"from": *cvss.From,
-		"to":   *cvss.To,
+		"from": cvss.From,
+		"to":   cvss.To,
 	}
 	return []interface{}{m}
 }
