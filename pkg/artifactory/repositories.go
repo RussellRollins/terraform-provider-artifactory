@@ -770,59 +770,68 @@ func universalUnpack(payload reflect.Type, s *schema.ResourceData) (interface{},
 
 type AutoMapper func(field reflect.StructField, thing reflect.Value) map[string]interface{}
 
-var lookup = func() func(payload interface{}) map[string]interface{} {
-	var handlePtr = func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
-		deref := reflect.Indirect(thing)
-		if deref.CanAddr() {
-			if deref.Kind() == reflect.Struct {
-				return gosucks(deref.Interface())
-			}
-			return map[string]interface{}{
-				field.Tag.Get("hcl"): deref.Interface(),
-			}
+func checkForHcl(mapper AutoMapper) AutoMapper {
+	return func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
+		if field.Tag.Get("hcl") != "" {
+			return mapper(field, thing)
 		}
 		return map[string]interface{}{}
 	}
-	var checkForHcl = func(mapper AutoMapper) AutoMapper {
-		return func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
-			if field.Tag.Get("hcl") != "" {
-				return mapper(field, thing)
+}
+
+func findInspector(kind reflect.Kind) AutoMapper {
+	switch kind {
+	case reflect.Struct:
+		return checkForHcl(func(f reflect.StructField, t reflect.Value) map[string]interface{} {
+			return lookup(t.Interface())
+		})
+	case reflect.Ptr:
+		return checkForHcl(func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
+			deref := reflect.Indirect(thing)
+			if deref.CanAddr() {
+				if deref.Kind() == reflect.Struct {
+					return lookup(deref.Interface())
+				}
+				return map[string]interface{}{
+					field.Tag.Get("hcl"): deref.Interface(),
+				}
 			}
 			return map[string]interface{}{}
-		}
-	}
-	lk := map[reflect.Kind]AutoMapper{}
-
-	find := func(payload interface{}) map[string]interface{} {
-		values := map[string]interface{}{}
-		var t = reflect.TypeOf(payload)
-		var v = reflect.ValueOf(payload)
-		if t.Kind() == reflect.Ptr {
-			t = t.Elem()
-			v = v.Elem()
-		}
-		for i := 0; i < t.NumField(); i++ {
-			field := t.Field(i)
-			thing := v.Field(i)
-			for key, value := range lk[thing.Kind()](field, thing) {
-				values[key] = value
+		})
+	case reflect.Slice:
+		return checkForHcl(func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
+			return map[string]interface{}{
+				field.Tag.Get("hcl"): castToInterfaceArr(thing.Interface().([]string)),
 			}
-
-		}
-		return values
+		})
 	}
-	lk[reflect.Struct] = checkForHcl(func(f reflect.StructField, t reflect.Value) map[string]interface{} {
-		return find(t.Interface())
-	})
-	lk[reflect.Slice] = checkForHcl(func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
+	return checkForHcl(func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
 		return map[string]interface{}{
-			field.Tag.Get("hcl"): castToInterfaceArr(thing.Interface().([]string)),
+			field.Tag.Get("hcl"): thing.Interface(),
 		}
 	})
-	lk[reflect.Ptr] = checkForHcl(handlePtr)
-	return find
-}()
-var gosucks = lookup
+}
+
+func lookup(payload interface{}) map[string]interface{} {
+
+	values := map[string]interface{}{}
+	var t = reflect.TypeOf(payload)
+	var v = reflect.ValueOf(payload)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+		v = v.Elem()
+	}
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		thing := v.Field(i)
+		typeInspector := findInspector(thing.Kind())
+		for key, value := range typeInspector(field, thing) {
+			values[key] = value
+		}
+	}
+	return values
+}
+
 func universalPack(payload interface{}, d *schema.ResourceData) error {
 	setValue := mkLens(d)
 
