@@ -1,7 +1,6 @@
 package artifactory
 
 import (
-	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -39,61 +38,32 @@ var dockerRemoteSchema = mergeSchema(baseRemoteSchema, map[string]*schema.Schema
 
 type DockerRemoteRepo struct {
 	RemoteRepositoryBaseParams
-	ExternalDependenciesEnabled  *bool    `json:"externalDependenciesEnabled,omitempty"`
-	ExternalDependenciesPatterns []string `json:"externalDependenciesPatterns,omitempty"`
-	EnableTokenAuthentication    *bool    `json:"enableTokenAuthentication,omitempty"`
-	BlockPushingSchema1          *bool    `json:"blockPushingSchema1,omitempty"`
+	ExternalDependenciesEnabled  bool    `hcl:"external_dependencies_enabled" json:"externalDependenciesEnabled"`
+	ExternalDependenciesPatterns []string `hcl:"external_dependencies_patterns" json:"externalDependenciesPatterns"`
+	EnableTokenAuthentication    bool    `hcl:"enable_token_authentication" json:"enableTokenAuthentication"`
+	BlockPushingSchema1          bool    `hcl:"block_pushing_schema1" json:"blockPushingSchema1"`
 }
 
-var dockerRemoteRepoReadFun = mkRepoRead(packDockerRemoteRepo, func() interface{} {
-	return &DockerRemoteRepo{
-		RemoteRepositoryBaseParams: RemoteRepositoryBaseParams{
-			Rclass:      "remote",
-			PackageType: "docker",
-		},
-	}
-})
-
 func resourceArtifactoryRemoteDockerRepository() *schema.Resource {
-	return &schema.Resource{
-		Create: mkRepoCreate(unpackDockerRemoteRepo, dockerRemoteRepoReadFun),
-		Read:   dockerRemoteRepoReadFun,
-		Update: mkRepoUpdate(unpackDockerRemoteRepo, dockerRemoteRepoReadFun),
-		Delete: deleteRepo,
-		Exists: repoExists,
-
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-		Schema: dockerRemoteSchema,
-	}
+	return mkResourceSchema(dockerRemoteSchema, universalPack, unpackDockerRemoteRepo, func() interface{} {
+		return &DockerRemoteRepo{
+			RemoteRepositoryBaseParams: RemoteRepositoryBaseParams{
+				Rclass:      "remote",
+				PackageType: "docker",
+			},
+		}
+	})
 }
 
 func unpackDockerRemoteRepo(s *schema.ResourceData) (interface{}, string, error) {
 	d := &ResourceData{s}
 	repo := DockerRemoteRepo{
 		RemoteRepositoryBaseParams:   unpackBaseRemoteRepo(s),
-		EnableTokenAuthentication:    d.getBoolRef("enable_token_authentication", false),
-		ExternalDependenciesEnabled:  d.getBoolRef("external_dependencies_enabled", false),
-		BlockPushingSchema1:          d.getBoolRef("block_pushing_schema1", false),
+		EnableTokenAuthentication:    d.getBool("enable_token_authentication", false),
+		ExternalDependenciesEnabled:  d.getBool("external_dependencies_enabled", false),
+		BlockPushingSchema1:          d.getBool("block_pushing_schema1", false),
 		ExternalDependenciesPatterns: d.getList("external_dependencies_patterns"),
 	}
 	repo.PackageType = "docker"
 	return repo, repo.Key, nil
-}
-
-func packDockerRemoteRepo(r interface{}, d *schema.ResourceData) error {
-	repo := r.(*DockerRemoteRepo)
-	setValue := packBaseRemoteRepo(d, repo.RemoteRepositoryBaseParams)
-
-	setValue("enable_token_authentication", *repo.EnableTokenAuthentication)
-	setValue("external_dependencies_enabled", *repo.ExternalDependenciesEnabled)
-	setValue("external_dependencies_patterns", repo.ExternalDependenciesPatterns)
-	errors := setValue("block_pushing_schema1", *repo.BlockPushingSchema1)
-
-	if len(errors) > 0 {
-		return fmt.Errorf("%q", errors)
-	}
-
-	return nil
 }

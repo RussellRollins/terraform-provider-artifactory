@@ -1,7 +1,6 @@
 package artifactory
 
 import (
-	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -26,8 +25,8 @@ var mavenVirtualSchema = mergeSchema(baseVirtualRepoSchema, map[string]*schema.S
 			"(3: nothing) Nothing - Does not remove any repository elements declared in the POM.",
 	},
 	"key_pair": {
-		Type:     schema.TypeString,
-		Optional: true,
+		Type:        schema.TypeString,
+		Optional:    true,
 		Description: "The keypair used to sign artifacts",
 	},
 })
@@ -43,26 +42,16 @@ type MavenVirtualRepositoryParams struct {
 	CommonMavenGradleVirtualRepositoryParams
 }
 
-var mvnVirtReader = mkRepoRead(packMavenVirtualRepository, func() interface{} {
-	return &MavenVirtualRepositoryParams{
-		VirtualRepositoryBaseParams: VirtualRepositoryBaseParams{
-			Rclass:      "virtual",
-			PackageType: "maven",
-		}}
-})
-
 func resourceArtifactoryMavenVirtualRepository() *schema.Resource {
-	return &schema.Resource{
-		Create: mkRepoCreate(unpackMavenVirtualRepository, mvnVirtReader),
-		Read:   mvnVirtReader,
-		Update: mkRepoUpdate(unpackMavenVirtualRepository, mvnVirtReader),
-		Delete: deleteRepo,
-		Exists: repoExists,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-		Schema: mavenVirtualSchema,
-	}
+	return mkResourceSchema(mavenVirtualSchema, universalPack, unpackMavenVirtualRepository, func() interface{} {
+		return &MavenVirtualRepositoryParams{
+			VirtualRepositoryBaseParams: VirtualRepositoryBaseParams{
+				Rclass:      "virtual",
+				PackageType: "maven",
+			},
+		}
+	})
+
 }
 
 func unpackMavenVirtualRepository(s *schema.ResourceData) (interface{}, string, error) {
@@ -81,17 +70,4 @@ func unpackMavenVirtualRepository(s *schema.ResourceData) (interface{}, string, 
 	return &repo, repo.Key, nil
 }
 
-func packMavenVirtualRepository(r interface{}, d *schema.ResourceData) error {
-	repo := r.(*MavenVirtualRepositoryParams)
-	setValue := packBaseVirtRepo(d, repo.VirtualRepositoryBaseParams)
 
-	setValue("key_pair", repo.KeyPair)
-	setValue("pom_repository_references_cleanup_policy", repo.PomRepositoryReferencesCleanupPolicy)
-	errors := setValue("force_maven_authentication", *repo.ForceMavenAuthentication)
-
-	if errors != nil && len(errors) > 0 {
-		return fmt.Errorf("failed to pack virtual repo %q", errors)
-	}
-
-	return nil
-}

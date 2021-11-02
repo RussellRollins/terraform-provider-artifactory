@@ -7,9 +7,6 @@ import (
 	"github.com/jfrog/jfrog-client-go/artifactory/services"
 )
 
-var legacyLocalReadFun = mkRepoRead(saveLocalRepoState, func() interface{} {
-	return &MessyRepo{}
-})
 
 var legacyLocalSchema = map[string]*schema.Schema{
 	"key": {
@@ -133,21 +130,16 @@ var legacyLocalSchema = map[string]*schema.Schema{
 }
 
 func resourceArtifactoryLocalRepository() *schema.Resource {
-	return &schema.Resource{
-		Create: mkRepoCreate(unmarshalLocalRepository, legacyLocalReadFun),
-		Read:   legacyLocalReadFun,
-		Update: mkRepoUpdate(unmarshalLocalRepository, legacyLocalReadFun),
-		Delete: deleteRepo,
-		Exists: repoExists,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
-		Schema: legacyLocalSchema,
-	}
+	return mkResourceSchema(legacyLocalSchema, saveLocalRepoState, unmarshalLocalRepository, func() interface{} {
+		return &MessyLocalRepo{
+			LocalRepositoryBaseParams: services.LocalRepositoryBaseParams{
+				Rclass:      "local",
+			},
+		}
+	})
 }
 
-type MessyRepo struct {
+type MessyLocalRepo struct {
 	services.LocalRepositoryBaseParams
 	services.CommonMavenGradleLocalRepositoryParams
 	services.DebianLocalRepositoryParams
@@ -158,7 +150,7 @@ type MessyRepo struct {
 
 func unmarshalLocalRepository(data *schema.ResourceData) (interface{}, string, error) {
 	d := &ResourceData{ResourceData: data}
-	repo := MessyRepo{}
+	repo := MessyLocalRepo{}
 
 	repo.Rclass = "local"
 	repo.Key = d.getString("key", false)
@@ -191,7 +183,7 @@ func unmarshalLocalRepository(data *schema.ResourceData) (interface{}, string, e
 
 func saveLocalRepoState(r interface{}, d *schema.ResourceData) error {
 
-	repo := r.(*MessyRepo)
+	repo := r.(*MessyLocalRepo)
 	setValue := mkLens(d)
 
 	setValue("key", repo.Key)

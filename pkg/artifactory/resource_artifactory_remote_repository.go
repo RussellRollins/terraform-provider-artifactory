@@ -19,307 +19,307 @@ type MessyRemoteRepo struct {
 	services.NugetRemoteRepositoryParams
 	PropagateQueryParams bool `json:"propagateQueryParams"`
 }
+func (mr MessyRemoteRepo) Id() string {
+	return mr.Key
+}
 
 var legacyRemoteRepoReadFun = mkRepoRead(packLegacyRemoteRepo, func() interface{} {
 	return &MessyRemoteRepo{}
 })
+var legacyRemoteSchema = map[string]*schema.Schema{
+	"key": {
+		Type:         schema.TypeString,
+		Required:     true,
+		ForceNew:     true,
+		ValidateFunc: repoKeyValidator,
+	},
+	"package_type": {
+		Type:         schema.TypeString,
+		Optional:     true,
+		ForceNew:     true,
+		Default:      "generic",
+		ValidateFunc: repoTypeValidator,
+	},
+	"description": {
+		Type:     schema.TypeString,
+		Optional: true,
+		DiffSuppressFunc: func(_, old, new string, _ *schema.ResourceData) bool {
+			return old == fmt.Sprintf("%s (local file cache)", new)
+		},
+	},
+	"notes": {
+		Type:     schema.TypeString,
+		Optional: true,
+	},
+	"includes_pattern": {
+		Type:     schema.TypeString,
+		Optional: true,
+		Computed: true,
+	},
+	"excludes_pattern": {
+		Type:     schema.TypeString,
+		Optional: true,
+		Computed: true,
+	},
+	"repo_layout_ref": {
+		Type:     schema.TypeString,
+		Optional: true,
+		Computed: true,
+	},
+	"handle_releases": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"handle_snapshots": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"max_unique_snapshots": {
+		Type:         schema.TypeInt,
+		Optional:     true,
+		Computed:     true,
+		ValidateFunc: validation.IntAtLeast(0),
+	},
+	"suppress_pom_consistency_checks": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"url": {
+		Type:         schema.TypeString,
+		Required:     true,
+		ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+	},
+	"username": {
+		Type:     schema.TypeString,
+		Optional: true,
+	},
+	"password": {
+		Type:        schema.TypeString,
+		Optional:    true,
+		Sensitive:   true,
+		StateFunc:   getMD5Hash,
+		Description: "This field can only be used if encryption has been turned off",
+	},
+	"proxy": {
+		Type:     schema.TypeString,
+		Optional: true,
+		Computed: true,
+	},
+	"remote_repo_checksum_policy_type": {
+		Type:     schema.TypeString,
+		Optional: true,
+		Computed: true,
+		ValidateFunc: validation.StringInSlice([]string{
+			"generate-if-absent",
+			"fail",
+			"ignore-and-generate",
+			"pass-thru",
+		}, false),
+	},
+	"hard_fail": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"offline": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"blacked_out": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"store_artifacts_locally": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"socket_timeout_millis": {
+		Type:         schema.TypeInt,
+		Optional:     true,
+		Computed:     true,
+		ValidateFunc: validation.IntAtLeast(0),
+	},
+	"local_address": {
+		Type:     schema.TypeString,
+		Optional: true,
+	},
+	"retrieval_cache_period_seconds": {
+		Type:        schema.TypeInt,
+		Optional:    true,
+		Computed:    true,
+		Description: "The metadataRetrievalTimeoutSecs field not allowed to be bigger then retrievalCachePeriodSecs field.",
+		DefaultFunc: func() (interface{}, error) {
+			return 7200, nil
+		},
+		ValidateFunc: validation.IntAtLeast(0),
+	},
+	"missed_cache_period_seconds": {
+		Type:         schema.TypeInt,
+		Optional:     true,
+		Computed:     true,
+		ValidateFunc: validation.IntAtLeast(0),
+	},
+	"unused_artifacts_cleanup_period_hours": {
+		Type:         schema.TypeInt,
+		Optional:     true,
+		Computed:     true,
+		ValidateFunc: validation.IntAtLeast(0),
+	},
+	"fetch_jars_eagerly": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"fetch_sources_eagerly": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"share_configuration": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"synchronize_properties": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"block_mismatching_mime_types": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"property_sets": {
+		Type:     schema.TypeSet,
+		Elem:     &schema.Schema{Type: schema.TypeString},
+		Set:      schema.HashString,
+		Optional: true,
+	},
+	"allow_any_host_auth": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"enable_cookie_management": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"client_tls_certificate": {
+		Type:     schema.TypeString,
+		Optional: true,
+		Computed: true,
+	},
+	"pypi_registry_url": {
+		Type:     schema.TypeString,
+		Optional: true,
+		Computed: true,
+	},
+	"bower_registry_url": {
+		Type:     schema.TypeString,
+		Optional: true,
+		Computed: true,
+	},
+	"bypass_head_requests": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"enable_token_authentication": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"xray_index": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	"vcs_type": {
+		Type:     schema.TypeString,
+		Optional: true,
+		Computed: true,
+	},
+	"vcs_git_provider": {
+		Type:     schema.TypeString,
+		Optional: true,
+		Computed: true,
+	},
+	"vcs_git_download_url": {
+		Type:     schema.TypeString,
+		Optional: true,
+		Computed: true,
+	},
+	"feed_context_path": {
+		Type:     schema.TypeString,
+		Optional: true,
+	},
+	"download_context_path": {
+		Type:     schema.TypeString,
+		Optional: true,
+	},
+	"v3_feed_url": {
+		Type:     schema.TypeString,
+		Optional: true,
+	},
+	"force_nuget_authentication": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+	},
+	//"metadataRetrievalTimeoutSecs": {
+	//	Type: schema.TypeInt,
+	//	Optional: true,
+	//	Computed: true,
+	//	Description: "The metadataRetrievalTimeoutSecs field not allowed to be bigger then retrievalCachePeriodSecs field.",
+	//	DefaultFunc: func() (interface{}, error) {
+	//		return 60, nil
+	//	},
+	//},
+	"content_synchronisation": {
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+				},
+			},
+		},
+	},
+	"propagate_query_params": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		Computed: true,
+		DefaultFunc: func() (interface{}, error) {
+			return false, nil
+		},
+	},
+}
+
 
 func resourceArtifactoryRemoteRepository() *schema.Resource {
-	return &schema.Resource{
-		Create: mkRepoCreate(unpackLegacyRemoteRepo, legacyRemoteRepoReadFun),
-		Read:   legacyRemoteRepoReadFun,
-		Update: mkRepoUpdate(unpackLegacyRemoteRepo, legacyRemoteRepoReadFun),
-		Delete: deleteRepo,
-		Exists: repoExists,
-
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
-		Schema: map[string]*schema.Schema{
-			"key": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: repoKeyValidator,
+	return mkResourceSchema(legacyRemoteSchema, packLegacyRemoteRepo, unpackLegacyRemoteRepo, func() interface{} {
+		return &MessyRemoteRepo{
+			RemoteRepositoryBaseParams: services.RemoteRepositoryBaseParams{
+				Rclass:      "remote",
 			},
-			"package_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      "generic",
-				ValidateFunc: repoTypeValidator,
-			},
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-				DiffSuppressFunc: func(_, old, new string, _ *schema.ResourceData) bool {
-					return old == fmt.Sprintf("%s (local file cache)", new)
-				},
-			},
-			"notes": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"includes_pattern": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"excludes_pattern": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"repo_layout_ref": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"handle_releases": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"handle_snapshots": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"max_unique_snapshots": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(0),
-			},
-			"suppress_pom_consistency_checks": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"url": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-			},
-			"username": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"password": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Sensitive:   true,
-				StateFunc:   getMD5Hash,
-				Description: "This field can only be used if encryption has been turned off",
-			},
-			"proxy": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"remote_repo_checksum_policy_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"generate-if-absent",
-					"fail",
-					"ignore-and-generate",
-					"pass-thru",
-				}, false),
-			},
-			"hard_fail": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"offline": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"blacked_out": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"store_artifacts_locally": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"socket_timeout_millis": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(0),
-			},
-			"local_address": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"retrieval_cache_period_seconds": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Computed:    true,
-				Description: "The metadataRetrievalTimeoutSecs field not allowed to be bigger then retrievalCachePeriodSecs field.",
-				DefaultFunc: func() (interface{}, error) {
-					return 7200, nil
-				},
-				ValidateFunc: validation.IntAtLeast(0),
-			},
-			"missed_cache_period_seconds": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(0),
-			},
-			"unused_artifacts_cleanup_period_hours": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(0),
-			},
-			"fetch_jars_eagerly": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"fetch_sources_eagerly": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"share_configuration": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"synchronize_properties": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"block_mismatching_mime_types": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"property_sets": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
-				Optional: true,
-			},
-			"allow_any_host_auth": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"enable_cookie_management": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"client_tls_certificate": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"pypi_registry_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"bower_registry_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"bypass_head_requests": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"enable_token_authentication": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"xray_index": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			"vcs_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"vcs_git_provider": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"vcs_git_download_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"feed_context_path": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"download_context_path": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"v3_feed_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"force_nuget_authentication": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-			//"metadataRetrievalTimeoutSecs": {
-			//	Type: schema.TypeInt,
-			//	Optional: true,
-			//	Computed: true,
-			//	Description: "The metadataRetrievalTimeoutSecs field not allowed to be bigger then retrievalCachePeriodSecs field.",
-			//	DefaultFunc: func() (interface{}, error) {
-			//		return 60, nil
-			//	},
-			//},
-			"content_synchronisation": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
-			},
-			"propagate_query_params": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-				DefaultFunc: func() (interface{}, error) {
-					return false, nil
-				},
-			},
-		},
-	}
+		}
+	})
 }
 
 func unpackLegacyRemoteRepo(s *schema.ResourceData) (interface{}, string, error) {
+
 	d := &ResourceData{s}
 	repo := MessyRemoteRepo{}
 
@@ -384,7 +384,7 @@ func unpackLegacyRemoteRepo(s *schema.ResourceData) (interface{}, string, error)
 		return MessyRemoteRepo{}, "", fmt.Errorf(format, repo.PackageType)
 	}
 
-	return repo, repo.Key, nil
+	return repo, repo.Id(), nil
 }
 
 func packLegacyRemoteRepo(r interface{}, d *schema.ResourceData) error {

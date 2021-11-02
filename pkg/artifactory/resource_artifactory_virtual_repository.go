@@ -1,12 +1,11 @@
 package artifactory
 
 import (
-	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/jfrog/jfrog-client-go/artifactory/services"
 )
 
-var legacySchema = map[string]*schema.Schema{
+var legacyVirtualSchema = map[string]*schema.Schema{
 	"key": {
 		Type:     schema.TypeString,
 		Required: true,
@@ -73,24 +72,18 @@ var legacySchema = map[string]*schema.Schema{
 	},
 }
 
-var readFunc = mkRepoRead(packVirtualRepository, func() interface{} {
-	return &MessyVirtualRepo{}
-})
 
 func resourceArtifactoryVirtualRepository() *schema.Resource {
-	return &schema.Resource{
-		Create: mkRepoCreate(unpackVirtualRepository, readFunc),
-		Read:   readFunc,
-		Update: mkRepoUpdate(unpackVirtualRepository, readFunc),
-		Delete: deleteRepo,
-		Exists: repoExists,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-		Schema: legacySchema,
-		DeprecationMessage: "This resource is deprecated and you should use repo type specific resources " +
-			"(such as artifactory_virtual_maven_repository) in the future",
-	}
+	skeema := mkResourceSchema(legacyVirtualSchema, universalPack, unpackVirtualRepository, func() interface{} {
+		return &MessyVirtualRepo{
+			VirtualRepositoryBaseParams: services.VirtualRepositoryBaseParams{
+				Rclass:      "virtual",
+			},
+		}
+	})
+	skeema.DeprecationMessage = "This resource is deprecated and you should use repo type specific resources " +
+		"(such as artifactory_virtual_maven_repository) in the future"
+	return skeema
 }
 
 type MessyVirtualRepo struct {
@@ -124,28 +117,3 @@ func unpackVirtualRepository(s *schema.ResourceData) (interface{}, string, error
 	return &repo, repo.Key, nil
 }
 
-func packVirtualRepository(r interface{}, d *schema.ResourceData) error {
-	repo := r.(*MessyVirtualRepo)
-	setValue := mkLens(d)
-
-	setValue("key", repo.Key)
-	setValue("package_type", repo.PackageType)
-	setValue("description", repo.Description)
-	setValue("notes", repo.Notes)
-	setValue("includes_pattern", repo.IncludesPattern)
-	setValue("excludes_pattern", repo.ExcludesPattern)
-	setValue("repo_layout_ref", repo.RepoLayoutRef)
-	setValue("debian_trivial_layout", repo.DebianTrivialLayout)
-	setValue("artifactory_requests_can_retrieve_remote_artifacts", repo.ArtifactoryRequestsCanRetrieveRemoteArtifacts)
-	setValue("key_pair", repo.KeyPair)
-	setValue("pom_repository_references_cleanup_policy", repo.PomRepositoryReferencesCleanupPolicy)
-	setValue("default_deployment_repo", repo.DefaultDeploymentRepo)
-	setValue("repositories", repo.Repositories)
-	errors := setValue("force_nuget_authentication", repo.ForceNugetAuthentication)
-
-	if errors != nil && len(errors) > 0 {
-		return fmt.Errorf("failed to pack virtual repo %q", errors)
-	}
-
-	return nil
-}
