@@ -3,29 +3,61 @@ package artifactory
 import (
 	"fmt"
 
-	"github.com/jfrog/jfrog-client-go/artifactory/services"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+type BowerRemoteRepositoryParams struct {
+	RemoteRepositoryBaseParams
+	BowerRegistryUrl string `json:"bowerRegistryUrl,omitempty"`
+}
+
+// CommonMavenGradleRemoteRepository move this to maven dedicated remote
+type CommonMavenGradleRemoteRepository struct {
+	FetchJarsEagerly             *bool  `hcl:"fetch_jars_eagerly" json:"fetchJarsEagerly,omitempty"`
+	FetchSourcesEagerly          *bool  `hcl:"fetch_sources_eagerly" json:"fetchSourcesEagerly,omitempty"`
+	RemoteRepoChecksumPolicyType string `hcl:"remote_repo_checksum_policy_type" json:"remoteRepoChecksumPolicyType,omitempty"`
+	ListRemoteFolderItems        *bool  `hcl:"list_remote_folder_items" json:"listRemoteFolderItems,omitempty"`
+	HandleReleases               *bool  `hcl:"handle_releases" json:"handleReleases,omitempty"`
+	HandleSnapshots              *bool  `hcl:"handle_snapshots" json:"handleSnapshots,omitempty"`
+	SuppressPomConsistencyChecks *bool  `hcl:"suppress_pom_consistency_checks" json:"suppressPomConsistencyChecks,omitempty"`
+	RejectInvalidJars            *bool  `hcl:"reject_invalid_jars" json:"rejectInvalidJars,omitempty"`
+}
+type VcsRemoteRepositoryParams struct {
+	RemoteRepositoryBaseParams
+	VcsGitProvider        string `hcl:"vcs_git_provider" json:"vcsGitProvider,omitempty"`
+	VcsType               string `hcl:"vcs_type" json:"vcsType,omitempty"`
+	MaxUniqueSnapshots    int    `hcl:"max_unique_snapshots" json:"maxUniqueSnapshots,omitempty"`
+	VcsGitDownloadUrl     string `hcl:"vcs_git_download_url" json:"vcsGitDownloadUrl,omitempty"`
+	ListRemoteFolderItems *bool  `hcl:"list_remote_folder_items" json:"listRemoteFolderItems,omitempty"`
+}
+type PypiRemoteRepositoryParams struct {
+	RemoteRepositoryBaseParams
+	ListRemoteFolderItems *bool  `hcl:"list_remote_folder_items" json:"listRemoteFolderItems,omitempty"`
+	PypiRegistryUrl       string `hcl:"pypi_registry_url" json:"pypiRegistryUrl,omitempty"`
+}
+type NugetRemoteRepositoryParams struct {
+	RemoteRepositoryBaseParams
+	FeedContextPath          string `hcl:"feed_context_path" json:"feedContextPath,omitempty"`
+	DownloadContextPath      string `hcl:"download_context_path" json:"downloadContextPath,omitempty"`
+	V3FeedUrl                string `hcl:"v3_feed_url" json:"v3FeedUrl,omitempty"`
+	ForceNugetAuthentication *bool  `hcl:"force_nuget_authentication" json:"forceNugetAuthentication,omitempty"`
+}
 type MessyRemoteRepo struct {
-	services.RemoteRepositoryBaseParams
-	services.BowerRemoteRepositoryParams
-	services.CommonMavenGradleRemoteRepositoryParams
-	services.DockerRemoteRepositoryParams
-	services.VcsRemoteRepositoryParams
-	services.PypiRemoteRepositoryParams
-	services.NugetRemoteRepositoryParams
-	PropagateQueryParams bool `json:"propagateQueryParams"`
+	RemoteRepositoryBaseParams
+	BowerRemoteRepositoryParams
+	CommonMavenGradleRemoteRepository
+	DockerRemoteRepository
+	VcsRemoteRepositoryParams
+	PypiRemoteRepositoryParams
+	NugetRemoteRepositoryParams
+	PropagateQueryParams bool `hcl:"propagate_query_params" json:"propagateQueryParams"`
 }
 func (mr MessyRemoteRepo) Id() string {
 	return mr.Key
 }
 
-var legacyRemoteRepoReadFun = mkRepoRead(packLegacyRemoteRepo, func() interface{} {
-	return &MessyRemoteRepo{}
-})
+
 var legacyRemoteSchema = map[string]*schema.Schema{
 	"key": {
 		Type:         schema.TypeString,
@@ -309,9 +341,11 @@ var legacyRemoteSchema = map[string]*schema.Schema{
 
 
 func resourceArtifactoryRemoteRepository() *schema.Resource {
+	// the universal pack function cannot be used because fields in the combined set of structs don't
+	// appear in the HCL, such as 'Invalid address to set: []string{"external_dependencies_patterns"}' which is a docker field
 	return mkResourceSchema(legacyRemoteSchema, packLegacyRemoteRepo, unpackLegacyRemoteRepo, func() interface{} {
 		return &MessyRemoteRepo{
-			RemoteRepositoryBaseParams: services.RemoteRepositoryBaseParams{
+			RemoteRepositoryBaseParams: RemoteRepositoryBaseParams{
 				Rclass:      "remote",
 			},
 		}
@@ -335,7 +369,7 @@ func unpackLegacyRemoteRepo(s *schema.ResourceData) (interface{}, string, error)
 	repo.ClientTlsCertificate = d.getString("client_tls_certificate", true)
 	repo.Description = d.getString("description", true)
 	repo.EnableCookieManagement = d.getBoolRef("enable_cookie_management", true)
-	repo.EnableTokenAuthentication = d.getBoolRef("enable_token_authentication", true)
+	repo.EnableTokenAuthentication = d.getBool("enable_token_authentication", true)
 	repo.ExcludesPattern = d.getString("excludes_pattern", true)
 	repo.FetchJarsEagerly = d.getBoolRef("fetch_jars_eagerly", true)
 	repo.FetchSourcesEagerly = d.getBoolRef("fetch_sources_eagerly", true)
@@ -375,7 +409,7 @@ func unpackLegacyRemoteRepo(s *schema.ResourceData) (interface{}, string, error)
 	if v, ok := d.GetOk("content_synchronisation"); ok {
 		contentSynchronisationConfig := v.([]interface{})[0].(map[string]interface{})
 		enabled := contentSynchronisationConfig["enabled"].(bool)
-		repo.ContentSynchronisation = &services.ContentSynchronisation{
+		repo.ContentSynchronisation = &ContentSynchronisation{
 			Enabled: enabled,
 		}
 	}

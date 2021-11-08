@@ -36,7 +36,7 @@ var dockerRemoteSchema = mergeSchema(baseRemoteSchema, map[string]*schema.Schema
 	},
 })
 
-type DockerRemoteRepo struct {
+type DockerRemoteRepository struct {
 	RemoteRepositoryBaseParams
 	ExternalDependenciesEnabled  bool    `hcl:"external_dependencies_enabled" json:"externalDependenciesEnabled"`
 	ExternalDependenciesPatterns []string `hcl:"external_dependencies_patterns" json:"externalDependenciesPatterns"`
@@ -46,7 +46,7 @@ type DockerRemoteRepo struct {
 
 func resourceArtifactoryRemoteDockerRepository() *schema.Resource {
 	return mkResourceSchema(dockerRemoteSchema, universalPack, unpackDockerRemoteRepo, func() interface{} {
-		return &DockerRemoteRepo{
+		return &DockerRemoteRepository{
 			RemoteRepositoryBaseParams: RemoteRepositoryBaseParams{
 				Rclass:      "remote",
 				PackageType: "docker",
@@ -57,7 +57,7 @@ func resourceArtifactoryRemoteDockerRepository() *schema.Resource {
 
 func unpackDockerRemoteRepo(s *schema.ResourceData) (interface{}, string, error) {
 	d := &ResourceData{s}
-	repo := DockerRemoteRepo{
+	repo := DockerRemoteRepository{
 		RemoteRepositoryBaseParams:   unpackBaseRemoteRepo(s),
 		EnableTokenAuthentication:    d.getBool("enable_token_authentication", false),
 		ExternalDependenciesEnabled:  d.getBool("external_dependencies_enabled", false),

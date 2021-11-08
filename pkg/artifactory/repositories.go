@@ -37,7 +37,7 @@ func (bp LocalRepositoryBaseParams) Id() string {
 }
 
 type ContentSynchronisation struct {
-	Enabled    bool `json:"enables,omitempty"`
+	Enabled    bool `hcl:"enabled" json:"enables,omitempty"`
 	Statistics struct {
 		Enabled bool `json:"enables,omitempty"`
 	} `json:"statistics,omitempty"`
@@ -56,36 +56,37 @@ type RemoteRepositoryBaseParams struct {
 	Url                               string                  `hcl:"url" json:"url"`
 	Username                          string                  `hcl:"username" json:"username,omitempty"`
 	Password                          string                  `hcl:"password" json:"password,omitempty"`
-	Proxy                             string                  `hcl:"key" json:"proxy"`
-	Description                       string                  `hcl:"description" json:"description, omitempty"`
-	Notes                             string                  `hcl:"notes" json:"notes, omitempty"`
-	IncludesPattern                   string                  `hcl:"includes_pattern" json:"includesPattern, omitempty"`
-	ExcludesPattern                   string                  `hcl:"excludes_pattern" json:"excludesPattern, omitempty"`
-	RepoLayoutRef                     string                  `hcl:"repo_layout_ref" json:"repoLayoutRef, omitempty"`
-	HardFail                          *bool                   `hcl:"hard_fail" json:"hardFail, omitempty"`
-	Offline                           *bool                   `hcl:"offline" json:"offline, omitempty"`
-	BlackedOut                        *bool                   `hcl:"blacked_out" json:"blackedOut, omitempty"`
-	XrayIndex                         *bool                   `hcl:"xray_index" json:"xrayIndex, omitempty"`
+	Proxy                             string                  `hcl:"proxy" json:"proxy"`
+	Description                       string                  `hcl:"description" json:"description,omitempty"`
+	Notes                             string                  `hcl:"notes" json:"notes,omitempty"`
+	IncludesPattern                   string                  `hcl:"includes_pattern" json:"includesPattern,omitempty"`
+	ExcludesPattern                   string                  `hcl:"excludes_pattern" json:"excludesPattern,omitempty"`
+	RepoLayoutRef                     string                  `hcl:"repo_layout_ref" json:"repoLayoutRef,omitempty"`
+	HardFail                          *bool                   `hcl:"hard_fail" json:"hardFail,omitempty"`
+	Offline                           *bool                   `hcl:"offline" json:"offline,omitempty"`
+	BlackedOut                        *bool                   `hcl:"blacked_out" json:"blackedOut,omitempty"`
+	XrayIndex                         *bool                   `hcl:"xray_index" json:"xrayIndex,omitempty"`
 	PropagateQueryParams              bool                    `hcl:"propagate_query_params" json:"propagateQueryParams"`
 	PriorityResolution                bool                    `hcl:"priority_resolution" json:"priorityResolution"`
-	StoreArtifactsLocally             *bool                   `hcl:"store_artifacts_locally" json:"storeArtifactsLocally, omitempty"`
-	SocketTimeoutMillis               int                     `hcl:"socket_timeout_millis" json:"socketTimeoutMillis, omitempty"`
-	LocalAddress                      string                  `hcl:"local_address" json:"localAddress, omitempty"`
-	RetrievalCachePeriodSecs          int                     `hcl:"retrieval_cache_period_seconds" json:"retrievalCachePeriodSecs, omitempty"`
-	FailedRetrievalCachePeriodSecs    int                     `hcl:"failed_retrieval_cache_period_secs" json:"failedRetrievalCachePeriodSecs, omitempty"`
-	MissedRetrievalCachePeriodSecs    int                     `hcl:"missed_cache_period_seconds" json:"missedRetrievalCachePeriodSecs, omitempty"`
-	UnusedArtifactsCleanupEnabled     *bool                   `hcl:"unused_artifacts_cleanup_period_enabled" json:"unusedArtifactsCleanupEnabled, omitempty"`
-	UnusedArtifactsCleanupPeriodHours int                     `hcl:"unused_artifacts_cleanup_period_hours" json:"unusedArtifactsCleanupPeriodHours, omitempty"`
-	AssumedOfflinePeriodSecs          int                     `hcl:"assumed_offline_period_secs" json:"assumedOfflinePeriodSecs, omitempty"`
-	ShareConfiguration                *bool                   `hcl:"share_configuration" json:"shareConfiguration, omitempty"`
-	SynchronizeProperties             *bool                   `hcl:"synchronize_properties" json:"synchronizeProperties, omitempty"`
-	BlockMismatchingMimeTypes         *bool                   `hcl:"block_mismatching_mime_types" json:"blockMismatchingMimeTypes, omitempty"`
-	PropertySets                      []string                `hcl:"property_sets" json:"propertySets, omitempty"`
-	AllowAnyHostAuth                  *bool                   `hcl:"allow_any_host_auth" json:"allowAnyHostAuth, omitempty"`
-	EnableCookieManagement            *bool                   `hcl:"enable_cookie_management" json:"enableCookieManagement, omitempty"`
-	BypassHeadRequests                *bool                   `hcl:"bypass_head_requests" json:"bypassHeadRequests, omitempty"`
-	ClientTlsCertificate              string                  `hcl:"client_tls_certificate" json:"clientTlsCertificate, omitempty"`
-	ContentSynchronisation            *ContentSynchronisation `hcl:"content_synchronisation" json:"contentSynchronisation, omitempty"`
+	StoreArtifactsLocally             *bool                   `hcl:"store_artifacts_locally" json:"storeArtifactsLocally,omitempty"`
+	SocketTimeoutMillis               int                     `hcl:"socket_timeout_millis" json:"socketTimeoutMillis,omitempty"`
+	LocalAddress                      string                  `hcl:"local_address" json:"localAddress,omitempty"`
+	RetrievalCachePeriodSecs          int                     `hcl:"retrieval_cache_period_seconds" json:"retrievalCachePeriodSecs,omitempty"`
+	// doesn't appear in the body when calling get. Hence no HCL
+	FailedRetrievalCachePeriodSecs    int                     `json:"failedRetrievalCachePeriodSecs,omitempty"`
+	MissedRetrievalCachePeriodSecs    int                     `hcl:"missed_cache_period_seconds" json:"missedRetrievalCachePeriodSecs,omitempty"`
+	UnusedArtifactsCleanupEnabled     *bool                   `hcl:"unused_artifacts_cleanup_period_enabled" json:"unusedArtifactsCleanupEnabled,omitempty"`
+	UnusedArtifactsCleanupPeriodHours int                     `hcl:"unused_artifacts_cleanup_period_hours" json:"unusedArtifactsCleanupPeriodHours,omitempty"`
+	AssumedOfflinePeriodSecs          int                     `hcl:"assumed_offline_period_secs" json:"assumedOfflinePeriodSecs,omitempty"`
+	ShareConfiguration                *bool                   `hcl:"share_configuration" json:"shareConfiguration,omitempty"`
+	SynchronizeProperties             *bool                   `hcl:"synchronize_properties" json:"synchronizeProperties,omitempty"`
+	BlockMismatchingMimeTypes         *bool                   `hcl:"block_mismatching_mime_types" json:"blockMismatchingMimeTypes,omitempty"`
+	PropertySets                      []string                `hcl:"property_sets" json:"propertySets,omitempty"`
+	AllowAnyHostAuth                  *bool                   `hcl:"allow_any_host_auth" json:"allowAnyHostAuth,omitempty"`
+	EnableCookieManagement            *bool                   `hcl:"enable_cookie_management" json:"enableCookieManagement,omitempty"`
+	BypassHeadRequests                *bool                   `hcl:"bypass_head_requests" json:"bypassHeadRequests,omitempty"`
+	ClientTlsCertificate              string                  `hcl:"client_tls_certificate" json:"clientTlsCertificate,omitempty"`
+	ContentSynchronisation            *ContentSynchronisation `hcl:"content_synchronisation" json:"contentSynchronisation,omitempty"`
 }
 
 func (bp RemoteRepositoryBaseParams) Id() string {
@@ -96,14 +97,14 @@ type VirtualRepositoryBaseParams struct {
 	Key                                           string   `hcl:"key" json:"key,omitempty"`
 	Rclass                                        string   `json:"rclass"`
 	PackageType                                   string   `hcl:"package_type" json:"packageType,omitempty"`
-	Description                                   string   `hcl:"key" json:"description,omitempty"`
+	Description                                   string   `hcl:"description" json:"description,omitempty"`
 	Notes                                         string   `hcl:"notes" json:"notes,omitempty"`
 	IncludesPattern                               string   `hcl:"includes_pattern" json:"includesPattern,omitempty"`
 	ExcludesPattern                               string   `hcl:"excludes_pattern" json:"excludesPattern,omitempty"`
 	RepoLayoutRef                                 string   `hcl:"repo_layout_ref" json:"repoLayoutRef,omitempty"`
 	Repositories                                  []string `hcl:"repositories" json:"repositories,omitempty"`
-	ArtifactoryRequestsCanRetrieveRemoteArtifacts *bool    `hcl:"artifactory_requests_can_retrieve_remote_artifacts" json:"artifactoryRequestsCanRetrieveRemoteArtifacts, omitempty"`
-	DefaultDeploymentRepo                         string   `hcl:"default_deployment_repo" json:"defaultDeploymentRepo, omitempty"`
+	ArtifactoryRequestsCanRetrieveRemoteArtifacts bool    `hcl:"artifactory_requests_can_retrieve_remote_artifacts" json:"artifactoryRequestsCanRetrieveRemoteArtifacts,omitempty"`
+	DefaultDeploymentRepo                         string   `hcl:"default_deployment_repo" json:"defaultDeploymentRepo,omitempty"`
 }
 
 func (bp VirtualRepositoryBaseParams) Id() string {
@@ -574,6 +575,7 @@ var baseVirtualRepoSchema = map[string]*schema.Schema{
 	"artifactory_requests_can_retrieve_remote_artifacts": {
 		Type:     schema.TypeBool,
 		Optional: true,
+		Default: false,
 	},
 	"default_deployment_repo": {
 		Type:     schema.TypeString,
@@ -707,7 +709,7 @@ func unpackBaseVirtRepo(s *schema.ResourceData) VirtualRepositoryBaseParams {
 		IncludesPattern: d.getString("includes_pattern", false),
 		ExcludesPattern: d.getString("excludes_pattern", false),
 		RepoLayoutRef:   d.getString("repo_layout_ref", false),
-		ArtifactoryRequestsCanRetrieveRemoteArtifacts: d.getBoolRef("artifactory_requests_can_retrieve_remote_artifacts", false),
+		ArtifactoryRequestsCanRetrieveRemoteArtifacts: d.getBool("artifactory_requests_can_retrieve_remote_artifacts", false),
 		Repositories:          d.getList("repositories"),
 		Description:           d.getString("description", false),
 		Notes:                 d.getString("notes", false),
@@ -725,7 +727,7 @@ func packBaseVirtRepo(d *schema.ResourceData, repo VirtualRepositoryBaseParams) 
 	setValue("includes_pattern", repo.IncludesPattern)
 	setValue("excludes_pattern", repo.ExcludesPattern)
 	setValue("repo_layout_ref", repo.RepoLayoutRef)
-	setValue("artifactory_requests_can_retrieve_remote_artifacts", *repo.ArtifactoryRequestsCanRetrieveRemoteArtifacts)
+	setValue("artifactory_requests_can_retrieve_remote_artifacts", repo.ArtifactoryRequestsCanRetrieveRemoteArtifacts)
 	setValue("default_deployment_repo", repo.DefaultDeploymentRepo)
 	setValue("repositories", repo.Repositories)
 	return setValue
@@ -782,18 +784,19 @@ func checkForHcl(mapper AutoMapper) AutoMapper {
 func findInspector(kind reflect.Kind) AutoMapper {
 	switch kind {
 	case reflect.Struct:
-		return checkForHcl(func(f reflect.StructField, t reflect.Value) map[string]interface{} {
+		return func(f reflect.StructField, t reflect.Value) map[string]interface{} {
 			return lookup(t.Interface())
-		})
+		}
 	case reflect.Ptr:
 		return checkForHcl(func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
 			deref := reflect.Indirect(thing)
 			if deref.CanAddr() {
+				result := deref.Interface()
 				if deref.Kind() == reflect.Struct {
-					return lookup(deref.Interface())
+					result = []interface{}{lookup(deref.Interface())}
 				}
 				return map[string]interface{}{
-					field.Tag.Get("hcl"): deref.Interface(),
+					field.Tag.Get("hcl"): result,
 				}
 			}
 			return map[string]interface{}{}
@@ -831,7 +834,8 @@ func lookup(payload interface{}) map[string]interface{} {
 	}
 	return values
 }
-
+// universalPack consider making this a function that takes a predicate of what to include and returns
+// a function that does the job. This would allow for the legacy code to specify which keys to keep and not
 func universalPack(payload interface{}, d *schema.ResourceData) error {
 	setValue := mkLens(d)
 

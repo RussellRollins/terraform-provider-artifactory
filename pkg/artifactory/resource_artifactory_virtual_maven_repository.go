@@ -32,9 +32,9 @@ var mavenVirtualSchema = mergeSchema(baseVirtualRepoSchema, map[string]*schema.S
 })
 
 type CommonMavenGradleVirtualRepositoryParams struct {
-	ForceMavenAuthentication             *bool  `json:"forceMavenAuthentication,omitempty"`
-	PomRepositoryReferencesCleanupPolicy string `json:"pomRepositoryReferencesCleanupPolicy,omitempty"`
-	KeyPair                              string `json:"keyPair,omitempty"`
+	ForceMavenAuthentication             *bool  `hcl:"force_maven_authentication" json:"forceMavenAuthentication,omitempty"`
+	PomRepositoryReferencesCleanupPolicy string `hcl:"pom_repository_references_cleanup_policy" json:"pomRepositoryReferencesCleanupPolicy,omitempty"`
+	KeyPair                              string `hcl:"key_pair" json:"keyPair,omitempty"`
 }
 
 type MavenVirtualRepositoryParams struct {
