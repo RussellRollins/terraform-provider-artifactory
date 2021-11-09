@@ -72,12 +72,11 @@ var legacyVirtualSchema = map[string]*schema.Schema{
 	},
 }
 
-
 func resourceArtifactoryVirtualRepository() *schema.Resource {
-	skeema := mkResourceSchema(legacyVirtualSchema, universalPack, unpackVirtualRepository, func() interface{} {
+	skeema := mkResourceSchema(legacyVirtualSchema, defaultPacker, unpackVirtualRepository, func() interface{} {
 		return &MessyVirtualRepo{
 			VirtualRepositoryBaseParams: services.VirtualRepositoryBaseParams{
-				Rclass:      "virtual",
+				Rclass: "virtual",
 			},
 		}
 	})
@@ -116,4 +115,3 @@ func unpackVirtualRepository(s *schema.ResourceData) (interface{}, string, error
 	repo.ForceNugetAuthentication = d.getBoolRef("force_nuget_authentication", false)
 	return &repo, repo.Key, nil
 }
-

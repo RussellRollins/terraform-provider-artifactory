@@ -12,7 +12,7 @@ import (
 func TestAccLocalAlpineRepository(t *testing.T) {
 	_, fqrn, name := mkNames("terraform-local-test-repo-basic", "artifactory_local_alpine_repository")
 	kpId, kpFqrn, kpName := mkNames("some-keypair", "artifactory_keypair")
-	localRepositoryBasic := executeTemplate("keypair",`
+	localRepositoryBasic := executeTemplate("keypair", `
 		resource "artifactory_keypair" "{{ .kp_name }}" {
 			pair_name  = "{{ .kp_name }}"
 			pair_type = "RSA"
@@ -64,9 +64,9 @@ func TestAccLocalAlpineRepository(t *testing.T) {
 			depends_on = [artifactory_keypair.{{ .kp_name }}]
 		}
 	`, map[string]interface{}{
-		"kp_id" : kpId,
-		"kp_name": kpName,
-		"repo_name" : name,
+		"kp_id":     kpId,
+		"kp_name":   kpName,
+		"repo_name": name,
 	}) // we use randomness so that, in the case of failure and dangle, the next test can run without collision
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testAccPreCheck(t) },
@@ -87,8 +87,133 @@ func TestAccLocalAlpineRepository(t *testing.T) {
 		},
 	})
 }
+func TestAccLocalDebianRepository(t *testing.T) {
+	_, fqrn, name := mkNames("local-debian-repo", "artifactory_local_debian_repository")
+	kpId, kpFqrn, kpName := mkNames("some-keypair1", "artifactory_keypair")
+	kpId2, kpFqrn2, kpName2 := mkNames("some-keypair2", "artifactory_keypair")
+	localRepositoryBasic := executeTemplate("keypair", `
+		resource "artifactory_keypair" "{{ .kp_name }}" {
+			pair_name  = "{{ .kp_name }}"
+			pair_type = "GPG"
+			alias = "foo-alias{{ .kp_id }}"
+			private_key = <<EOF
+		-----BEGIN PGP PRIVATE KEY BLOCK-----
+		
+		lIYEYYU7tRYJKwYBBAHaRw8BAQdAZ8vVdEyrWGssb7cdreG5GDGv6taHX/vWQdDG
+		jn7zib/+BwMCFjb4odY28+n0NWj7KZ53BkA0qzzqT9IpIfsW/tLNPTxYEFrDVbcF
+		1CuiAgAhyUfBEr9HQaMJBLfIIvo/B3nlWvwWHkiQFuWpsnJ2pj8F8LQqQ2hyaXN0
+		aWFuIEJvbmdpb3JubyA8Y2hyaXN0aWFuYkBqZnJvZy5jb20+iJoEExYKAEIWIQSS
+		w8jt+9pdVC3Gts7AvzSEkhHbJAUCYYU7tQIbAwUJA8JnAAULCQgHAgMiAgEGFQoJ
+		CAsCBBYCAwECHgcCF4AACgkQwL80hJIR2yRQDgD/X1t/hW9+uXdSY59FOClhQw/t
+		AzTYjDW+KLKadYJ3RAIBALD53rj7EnrXsSqv9Vqj3mJ7O38eXu50P57tD8ErpHMD
+		nIsEYYU7tRIKKwYBBAGXVQEFAQEHQCfT+jXHVkslGAJqVafoeWO8Nwz/oPPzNDJb
+		EOASsMRcAwEIB/4HAwK+Wi8OaidLuvQ6yknLUspoRL8KJlQu0JkfLxj6Wl6GrRtf
+		MdUBxaGUQX5UzMIqyYstgHKz2kBYvrJijWdOkkRuL82FySSh4yi/97FBikOBiHgE
+		GBYKACAWIQSSw8jt+9pdVC3Gts7AvzSEkhHbJAUCYYU7tQIbDAAKCRDAvzSEkhHb
+		JNR/AQCQjGWljmP8pYj6ohP8bOwVB4VE5qxjdfWQvBCUA0LFwgEAxLGVeT88pw3+
+		x7Cwd7SsuxlIOOCIJssFnUhA9Qsq2wE=
+		=qCzy
+		-----END PGP PRIVATE KEY BLOCK-----
+		EOF
+			public_key = <<EOF
+		-----BEGIN PGP PUBLIC KEY BLOCK-----
+		
+		mDMEYYU7tRYJKwYBBAHaRw8BAQdAZ8vVdEyrWGssb7cdreG5GDGv6taHX/vWQdDG
+		jn7zib+0KkNocmlzdGlhbiBCb25naW9ybm8gPGNocmlzdGlhbmJAamZyb2cuY29t
+		PoiaBBMWCgBCFiEEksPI7fvaXVQtxrbOwL80hJIR2yQFAmGFO7UCGwMFCQPCZwAF
+		CwkIBwIDIgIBBhUKCQgLAgQWAgMBAh4HAheAAAoJEMC/NISSEdskUA4A/19bf4Vv
+		frl3UmOfRTgpYUMP7QM02Iw1viiymnWCd0QCAQCw+d64+xJ617Eqr/Vao95iezt/
+		Hl7udD+e7Q/BK6RzA7g4BGGFO7USCisGAQQBl1UBBQEBB0An0/o1x1ZLJRgCalWn
+		6HljvDcM/6Dz8zQyWxDgErDEXAMBCAeIeAQYFgoAIBYhBJLDyO372l1ULca2zsC/
+		NISSEdskBQJhhTu1AhsMAAoJEMC/NISSEdsk1H8BAJCMZaWOY/yliPqiE/xs7BUH
+		hUTmrGN19ZC8EJQDQsXCAQDEsZV5PzynDf7HsLB3tKy7GUg44IgmywWdSED1Cyrb
+		AQ==
+		=2kMe
+		-----END PGP PUBLIC KEY BLOCK-----
+		EOF
+		}
+		resource "artifactory_keypair" "{{ .kp_name2 }}" {
+			pair_name  = "{{ .kp_name2 }}"
+			pair_type = "GPG"
+			alias = "foo-alias{{ .kp_id2 }}"
+			private_key = <<EOF
+		-----BEGIN PGP PRIVATE KEY BLOCK-----
+		
+		lIYEYYU7tRYJKwYBBAHaRw8BAQdAZ8vVdEyrWGssb7cdreG5GDGv6taHX/vWQdDG
+		jn7zib/+BwMCFjb4odY28+n0NWj7KZ53BkA0qzzqT9IpIfsW/tLNPTxYEFrDVbcF
+		1CuiAgAhyUfBEr9HQaMJBLfIIvo/B3nlWvwWHkiQFuWpsnJ2pj8F8LQqQ2hyaXN0
+		aWFuIEJvbmdpb3JubyA8Y2hyaXN0aWFuYkBqZnJvZy5jb20+iJoEExYKAEIWIQSS
+		w8jt+9pdVC3Gts7AvzSEkhHbJAUCYYU7tQIbAwUJA8JnAAULCQgHAgMiAgEGFQoJ
+		CAsCBBYCAwECHgcCF4AACgkQwL80hJIR2yRQDgD/X1t/hW9+uXdSY59FOClhQw/t
+		AzTYjDW+KLKadYJ3RAIBALD53rj7EnrXsSqv9Vqj3mJ7O38eXu50P57tD8ErpHMD
+		nIsEYYU7tRIKKwYBBAGXVQEFAQEHQCfT+jXHVkslGAJqVafoeWO8Nwz/oPPzNDJb
+		EOASsMRcAwEIB/4HAwK+Wi8OaidLuvQ6yknLUspoRL8KJlQu0JkfLxj6Wl6GrRtf
+		MdUBxaGUQX5UzMIqyYstgHKz2kBYvrJijWdOkkRuL82FySSh4yi/97FBikOBiHgE
+		GBYKACAWIQSSw8jt+9pdVC3Gts7AvzSEkhHbJAUCYYU7tQIbDAAKCRDAvzSEkhHb
+		JNR/AQCQjGWljmP8pYj6ohP8bOwVB4VE5qxjdfWQvBCUA0LFwgEAxLGVeT88pw3+
+		x7Cwd7SsuxlIOOCIJssFnUhA9Qsq2wE=
+		=qCzy
+		-----END PGP PRIVATE KEY BLOCK-----
+		EOF
+			public_key = <<EOF
+		-----BEGIN PGP PUBLIC KEY BLOCK-----
+		
+		mDMEYYU7tRYJKwYBBAHaRw8BAQdAZ8vVdEyrWGssb7cdreG5GDGv6taHX/vWQdDG
+		jn7zib+0KkNocmlzdGlhbiBCb25naW9ybm8gPGNocmlzdGlhbmJAamZyb2cuY29t
+		PoiaBBMWCgBCFiEEksPI7fvaXVQtxrbOwL80hJIR2yQFAmGFO7UCGwMFCQPCZwAF
+		CwkIBwIDIgIBBhUKCQgLAgQWAgMBAh4HAheAAAoJEMC/NISSEdskUA4A/19bf4Vv
+		frl3UmOfRTgpYUMP7QM02Iw1viiymnWCd0QCAQCw+d64+xJ617Eqr/Vao95iezt/
+		Hl7udD+e7Q/BK6RzA7g4BGGFO7USCisGAQQBl1UBBQEBB0An0/o1x1ZLJRgCalWn
+		6HljvDcM/6Dz8zQyWxDgErDEXAMBCAeIeAQYFgoAIBYhBJLDyO372l1ULca2zsC/
+		NISSEdskBQJhhTu1AhsMAAoJEMC/NISSEdsk1H8BAJCMZaWOY/yliPqiE/xs7BUH
+		hUTmrGN19ZC8EJQDQsXCAQDEsZV5PzynDf7HsLB3tKy7GUg44IgmywWdSED1Cyrb
+		AQ==
+		=2kMe
+		-----END PGP PUBLIC KEY BLOCK-----
+		EOF
+		}
+		resource "artifactory_local_debian_repository" "{{ .repo_name }}" {
+			key 	     = "{{ .repo_name }}"
+			primary_keypair_ref = artifactory_keypair.{{ .kp_name }}.pair_name 
+			secondary_keypair_ref = artifactory_keypair.{{ .kp_name2 }}.pair_name 
+			index_compression_formats = ["bz2","lzma","xz"]
+			trivial_layout = true
+			depends_on = [artifactory_keypair.{{ .kp_name }}]
+		}
+	`, map[string]interface{}{
+		"kp_id":     kpId,
+		"kp_name":   kpName,
+		"kp_id2":    kpId2,
+		"kp_name2":  kpName2,
+		"repo_name": name,
+	}) // we use randomness so that, in the case of failure and dangle, the next test can run without collision
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() { testAccPreCheck(t) },
+		CheckDestroy: compositeCheckDestroy(
+			verifyDeleted(fqrn, testCheckRepo),
+			verifyDeleted(kpFqrn, verifyKeyPair),
+			verifyDeleted(kpFqrn2, verifyKeyPair),
+		),
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: localRepositoryBasic,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(fqrn, "key", name),
+					resource.TestCheckResourceAttr(fqrn, "package_type", "debian"),
+					resource.TestCheckResourceAttr(fqrn, "primary_keypair_ref", kpName),
+					resource.TestCheckResourceAttr(fqrn, "secondary_keypair_ref", kpName2),
+					resource.TestCheckResourceAttr(fqrn, "trivial_layout", "true"),
+					resource.TestCheckResourceAttr(fqrn, "index_compression_formats.0", "bz2"),
+					resource.TestCheckResourceAttr(fqrn, "index_compression_formats.1", "lzma"),
+					resource.TestCheckResourceAttr(fqrn, "index_compression_formats.2", "xz"),
+				),
+			},
+		},
+	})
+}
 
-func TestAccLocalRepository_basic(t *testing.T) {
+func TestAccLegacyLocalRepository_basic(t *testing.T) {
 	name := fmt.Sprintf("terraform-local-test-repo-basic%d", rand.Int())
 	resourceName := fmt.Sprintf("artifactory_local_repository.%s", name)
 	localRepositoryBasic := fmt.Sprintf(`
@@ -99,7 +224,7 @@ func TestAccLocalRepository_basic(t *testing.T) {
 	`, name, name) // we use randomness so that, in the case of failure and dangle, the next test can run without collision
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
-		CheckDestroy:      verifyDeleted(resourceName,testCheckRepo),
+		CheckDestroy:      verifyDeleted(resourceName, testCheckRepo),
 		ProviderFactories: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -107,6 +232,69 @@ func TestAccLocalRepository_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "key", name),
 					resource.TestCheckResourceAttr(resourceName, "package_type", "docker"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccLocalDockerV1Repository(t *testing.T) {
+
+	_, fqrn, name := mkNames("dockerv1-local", "artifactory_local_docker_v1_repository")
+	params := map[string]interface{}{
+		"name": name,
+	}
+	localRepositoryBasic := executeTemplate("TestAccLocalDockerv2Repository", `
+		resource "artifactory_local_docker_v1_repository" "{{ .name }}" {
+			key 	     = "{{ .name }}"
+		}
+	`, params)
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		CheckDestroy:      verifyDeleted(fqrn, testCheckRepo),
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: localRepositoryBasic,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(fqrn, "key", name),
+					resource.TestCheckResourceAttr(fqrn, "block_pushing_schema1", "false"),
+					resource.TestCheckResourceAttr(fqrn, "tag_retention", "1"),
+					resource.TestCheckResourceAttr(fqrn, "max_unique_tags", "0"),
+				),
+			},
+		},
+	})
+}
+func TestAccLocalDockerV2Repository(t *testing.T) {
+
+	_, fqrn, name := mkNames("dockerv2-local", "artifactory_local_docker_v2_repository")
+	params := map[string]interface{}{
+		"block":     randBool(),
+		"retention": randSelect(1, 5, 10),
+		"max_tags":  randSelect(0, 5, 10),
+		"name":      name,
+	}
+	localRepositoryBasic := executeTemplate("TestAccLocalDockerV2Repository", `
+		resource "artifactory_local_docker_v2_repository" "{{ .name }}" {
+			key 	     = "{{ .name }}"
+			tag_retention = {{ .retention }}
+			max_unique_tags = {{ .max_tags }}
+			block_pushing_schema1 = {{ .block }}
+		}
+	`, params)
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		CheckDestroy:      verifyDeleted(fqrn, testCheckRepo),
+		ProviderFactories: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: localRepositoryBasic,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(fqrn, "key", name),
+					resource.TestCheckResourceAttr(fqrn, "block_pushing_schema1", fmt.Sprintf("%t", params["block"])),
+					resource.TestCheckResourceAttr(fqrn, "tag_retention", fmt.Sprintf("%d", params["retention"])),
+					resource.TestCheckResourceAttr(fqrn, "max_unique_tags", fmt.Sprintf("%d", params["max_tags"])),
 				),
 			},
 		},
@@ -146,7 +334,7 @@ func mkTestCase(repoType string, t *testing.T) (*testing.T, resource.TestCase) {
 	return t, resource.TestCase{
 		ProviderFactories: testAccProviders,
 		PreCheck:          func() { testAccPreCheck(t) },
-		CheckDestroy:      verifyDeleted(resourceName,testCheckRepo),
+		CheckDestroy:      verifyDeleted(resourceName, testCheckRepo),
 		Steps: []resource.TestStep{
 			{
 				Config: cfg,

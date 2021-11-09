@@ -22,7 +22,7 @@ var alpineLocalSchema = mergeSchema(baseLocalRepoSchema, map[string]*schema.Sche
 })
 
 func resourceArtifactoryLocalAlpineRepository() *schema.Resource {
-	return mkResourceSchema(alpineLocalSchema, universalPack, unPackLocalAlpineRepository, func() interface{} {
+	return mkResourceSchema(alpineLocalSchema, defaultPacker, unPackLocalAlpineRepository, func() interface{} {
 		return &AlpineLocalRepo{
 			LocalRepositoryBaseParams: LocalRepositoryBaseParams{
 				PackageType: "alpine",
@@ -40,9 +40,9 @@ type AlpineLocalRepo struct {
 func unPackLocalAlpineRepository(data *schema.ResourceData) (interface{}, string, error) {
 	d := &ResourceData{ResourceData: data}
 	repo := AlpineLocalRepo{
-		LocalRepositoryBaseParams: unpackBaseLocalRepo(data),
-		PrimaryKeyPairRef: d.getString("primary_keypair_ref", false),
+		LocalRepositoryBaseParams: unpackBaseLocalRepo(data, "alpine"),
+		PrimaryKeyPairRef:         d.getString("primary_keypair_ref", false),
 	}
 
-	return repo, repo.Key, nil
+	return repo, repo.Id(), nil
 }

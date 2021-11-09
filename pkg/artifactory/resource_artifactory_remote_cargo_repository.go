@@ -26,9 +26,8 @@ type CargoRemoteRepo struct {
 	AnonymousAccess bool   `hcl:"anonymous_access" json:"cargoAnonymousAccess"`
 }
 
-
 func resourceArtifactoryRemoteCargoRepository() *schema.Resource {
-	return mkResourceSchema(cargoRemoteSchema, universalPack, unpackCargoRemoteRepo, func() interface{} {
+	return mkResourceSchema(cargoRemoteSchema, defaultPacker, unpackCargoRemoteRepo, func() interface{} {
 		return &CargoRemoteRepo{
 			RemoteRepositoryBaseParams: RemoteRepositoryBaseParams{
 				Rclass:      "remote",
@@ -41,10 +40,9 @@ func resourceArtifactoryRemoteCargoRepository() *schema.Resource {
 func unpackCargoRemoteRepo(s *schema.ResourceData) (interface{}, string, error) {
 	d := &ResourceData{s}
 	repo := CargoRemoteRepo{
-		RemoteRepositoryBaseParams: unpackBaseRemoteRepo(s),
+		RemoteRepositoryBaseParams: unpackBaseRemoteRepo(s, "cargo"),
 		RegistryUrl:                d.getString("git_registry_url", false),
 		AnonymousAccess:            d.getBool("anonymous_access", false),
 	}
-	repo.PackageType = "cargo"
-	return repo, repo.Key, nil
+	return repo, repo.Id(), nil
 }

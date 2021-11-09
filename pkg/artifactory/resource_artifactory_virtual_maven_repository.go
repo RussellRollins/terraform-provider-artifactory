@@ -43,7 +43,7 @@ type MavenVirtualRepositoryParams struct {
 }
 
 func resourceArtifactoryMavenVirtualRepository() *schema.Resource {
-	return mkResourceSchema(mavenVirtualSchema, universalPack, unpackMavenVirtualRepository, func() interface{} {
+	return mkResourceSchema(mavenVirtualSchema, defaultPacker, unpackMavenVirtualRepository, func() interface{} {
 		return &MavenVirtualRepositoryParams{
 			VirtualRepositoryBaseParams: VirtualRepositoryBaseParams{
 				Rclass:      "virtual",
@@ -69,5 +69,3 @@ func unpackMavenVirtualRepository(s *schema.ResourceData) (interface{}, string, 
 
 	return &repo, repo.Key, nil
 }
-
-

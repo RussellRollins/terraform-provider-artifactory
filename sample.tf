@@ -3,26 +3,56 @@ terraform {
   required_providers {
     artifactory = {
       source  = "registry.terraform.io/jfrog/artifactory"
-      version = "2.6.14"
+      version = "2.6.17"
     }
   }
 }
+resource "artifactory_local_docker_v2_repository" "foo" {
+  key 	     = "foo"
+  tag_retention = 3
+  max_unique_tags = 5
+}
+resource "artifactory_local_docker_v1_repository" "foo" {
+  key 	     = "foo"
+}
+
+resource "random_id" "randid" {
+  byte_length = 16
+}
+resource "tls_private_key" "example" {
+  algorithm   = "RSA"
+  rsa_bits = 2048
+
+}
 resource "artifactory_keypair" "some-keypairRSA" {
-  pair_name   = "some-keypair${random_id.randid.id}"
+  pair_name   = "some-keypairfoo"
   pair_type   = "RSA"
-  alias       = "foo-alias${random_id.randid.id}"
   private_key = file("samples/rsa.priv")
   public_key  = file("samples/rsa.pub")
+  alias       = "foo-aliasfoo"
 }
-# currently PGP isn't supported
-#resource "artifactory_keypair" "some-keypairPGP" {
-#  pair_name   = "some-keypair${random_id.randid.id}"
-#  pair_type   = "PGP"
-#  alias       = "foo-alias${random_id.randid.id}"
-#  private_key = file("samples/pgp.priv")
-#  public_key  = file("samples/pgp.pub")
-#  passphrase = "123456"
-#}
+resource "artifactory_keypair" "some-keypairGPG1" {
+  pair_name   = "some-keypair${random_id.randid.id}"
+  pair_type   = "GPG"
+  alias       = "foo-alias1"
+  private_key = file("samples/gpg.priv")
+  public_key  = file("samples/gpg.pub")
+}
+resource "artifactory_keypair" "some-keypairGPG2" {
+  pair_name   = "some-keypair4${random_id.randid.id}"
+  pair_type   = "GPG"
+  alias       = "foo-alias2"
+  private_key = file("samples/gpg.priv")
+  public_key  = file("samples/gpg.pub")
+}
+resource "artifactory_local_debian_repository" "my-debian-repo" {
+  key                       = "my-debian-repo"
+  primary_keypair_ref       = artifactory_keypair.some-keypairGPG1.pair_name
+  secondary_keypair_ref     = artifactory_keypair.some-keypairGPG2.pair_name
+  index_compression_formats = ["bz2", "lzma", "xz"]
+  trivial_layout            = true
+  depends_on                = [artifactory_keypair.some-keypairGPG1, artifactory_keypair.some-keypairGPG2]
+}
 
 resource "artifactory_local_alpine_repository" "terraform-local-test-repo-basic1896042683811651651" {
   key                 = "terraform-local-test-repo-basic1896042683811651651"
@@ -66,9 +96,6 @@ variable "supported_repo_types" {
     "vcs",
   ]
 }
-resource "random_id" "randid" {
-  byte_length = 16
-}
 
 
 resource "artifactory_local_repository" "local" {
@@ -97,33 +124,6 @@ resource "artifactory_remote_repository" "npm-remote" {
   xray_index = true
 }
 
-resource "tls_private_key" "example" {
-  algorithm   = "RSA"
-  rsa_bits = 2048
-}
-
-data "tls_public_key" "example" {
-
-}
-
-resource "artifactory_xray_policy" "test" {
-  name = "test-policy-name-severity"
-  description = "test policy description"
-  type = "security"
-  rules {
-    name = "rule-name"
-    priority = 1
-    criteria {
-      min_severity = "High"
-    }
-    actions {
-      block_download {
-        unscanned = true
-        active = true
-      }
-    }
-  }
-}
 resource "artifactory_virtual_go_repository" "baz-go" {
   key          = "baz-go"
   repo_layout_ref = "go-default"
@@ -150,37 +150,6 @@ resource "artifactory_virtual_maven_repository" "foo" {
   force_maven_authentication = true
   pom_repository_references_cleanup_policy = "discard_active_reference"
 }
-resource "artifactory_xray_watch" "test" {
-  name = "watch-npm-local-repo"
-  description = "apply a severity-based policy to the npm local repo"
 
-  resources {
-    type = "repository"
-    name = "npm-local"
-    bin_mgr_id = "example-com-artifactory-instance"
-    repo_type = "local"
-    filters {
-      type = "package-type"
-      value = "Npm"
-    }
-  }
-
-  resources {
-    type = "repository"
-    name = artifactory_remote_repository.npm-remote.key
-    bin_mgr_id = "default"
-    repo_type = "remote"
-
-    filters {
-      type = "package-type"
-      value = "Npm"
-    }
-  }
-
-  assigned_policies {
-    name = artifactory_xray_policy.test.name
-    type = "security"
-  }
-}
 
 

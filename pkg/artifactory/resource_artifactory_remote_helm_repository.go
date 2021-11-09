@@ -21,7 +21,7 @@ type HelmRemoteRepo struct {
 }
 
 func resourceArtifactoryRemoteHelmRepository() *schema.Resource {
-	return mkResourceSchema(helmRemoteSchema, universalPack, unpackhelmRemoteRepo, func() interface{} {
+	return mkResourceSchema(helmRemoteSchema, defaultPacker, unpackhelmRemoteRepo, func() interface{} {
 		return &HelmRemoteRepo{
 			RemoteRepositoryBaseParams: RemoteRepositoryBaseParams{
 				Rclass:      "remote",
@@ -34,9 +34,8 @@ func resourceArtifactoryRemoteHelmRepository() *schema.Resource {
 func unpackhelmRemoteRepo(s *schema.ResourceData) (interface{}, string, error) {
 	d := &ResourceData{s}
 	repo := HelmRemoteRepo{
-		RemoteRepositoryBaseParams: unpackBaseRemoteRepo(s),
+		RemoteRepositoryBaseParams: unpackBaseRemoteRepo(s, "helm"),
 		HelmChartsBaseURL:          d.getString("helm_charts_base_url", false),
 	}
-	repo.PackageType = "helm"
-	return repo, repo.Key, nil
+	return repo, repo.Id(), nil
 }

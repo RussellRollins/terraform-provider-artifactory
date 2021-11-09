@@ -38,14 +38,14 @@ var dockerRemoteSchema = mergeSchema(baseRemoteSchema, map[string]*schema.Schema
 
 type DockerRemoteRepository struct {
 	RemoteRepositoryBaseParams
-	ExternalDependenciesEnabled  bool    `hcl:"external_dependencies_enabled" json:"externalDependenciesEnabled"`
+	ExternalDependenciesEnabled  bool     `hcl:"external_dependencies_enabled" json:"externalDependenciesEnabled"`
 	ExternalDependenciesPatterns []string `hcl:"external_dependencies_patterns" json:"externalDependenciesPatterns"`
-	EnableTokenAuthentication    bool    `hcl:"enable_token_authentication" json:"enableTokenAuthentication"`
-	BlockPushingSchema1          bool    `hcl:"block_pushing_schema1" json:"blockPushingSchema1"`
+	EnableTokenAuthentication    bool     `hcl:"enable_token_authentication" json:"enableTokenAuthentication"`
+	BlockPushingSchema1          bool     `hcl:"block_pushing_schema1" json:"blockPushingSchema1"`
 }
 
 func resourceArtifactoryRemoteDockerRepository() *schema.Resource {
-	return mkResourceSchema(dockerRemoteSchema, universalPack, unpackDockerRemoteRepo, func() interface{} {
+	return mkResourceSchema(dockerRemoteSchema, defaultPacker, unpackDockerRemoteRepo, func() interface{} {
 		return &DockerRemoteRepository{
 			RemoteRepositoryBaseParams: RemoteRepositoryBaseParams{
 				Rclass:      "remote",
@@ -58,12 +58,11 @@ func resourceArtifactoryRemoteDockerRepository() *schema.Resource {
 func unpackDockerRemoteRepo(s *schema.ResourceData) (interface{}, string, error) {
 	d := &ResourceData{s}
 	repo := DockerRemoteRepository{
-		RemoteRepositoryBaseParams:   unpackBaseRemoteRepo(s),
+		RemoteRepositoryBaseParams:   unpackBaseRemoteRepo(s, "docker"),
 		EnableTokenAuthentication:    d.getBool("enable_token_authentication", false),
 		ExternalDependenciesEnabled:  d.getBool("external_dependencies_enabled", false),
 		BlockPushingSchema1:          d.getBool("block_pushing_schema1", false),
 		ExternalDependenciesPatterns: d.getList("external_dependencies_patterns"),
 	}
-	repo.PackageType = "docker"
-	return repo, repo.Key, nil
+	return repo, repo.Id(), nil
 }

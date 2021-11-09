@@ -53,10 +53,10 @@ type MessyRemoteRepo struct {
 	NugetRemoteRepositoryParams
 	PropagateQueryParams bool `hcl:"propagate_query_params" json:"propagateQueryParams"`
 }
+
 func (mr MessyRemoteRepo) Id() string {
 	return mr.Key
 }
-
 
 var legacyRemoteSchema = map[string]*schema.Schema{
 	"key": {
@@ -339,14 +339,13 @@ var legacyRemoteSchema = map[string]*schema.Schema{
 	},
 }
 
-
 func resourceArtifactoryRemoteRepository() *schema.Resource {
 	// the universal pack function cannot be used because fields in the combined set of structs don't
 	// appear in the HCL, such as 'Invalid address to set: []string{"external_dependencies_patterns"}' which is a docker field
 	return mkResourceSchema(legacyRemoteSchema, packLegacyRemoteRepo, unpackLegacyRemoteRepo, func() interface{} {
 		return &MessyRemoteRepo{
 			RemoteRepositoryBaseParams: RemoteRepositoryBaseParams{
-				Rclass:      "remote",
+				Rclass: "remote",
 			},
 		}
 	})

@@ -50,28 +50,28 @@ type ContentSynchronisation struct {
 }
 
 type RemoteRepositoryBaseParams struct {
-	Key                               string                  `hcl:"key" json:"key,omitempty"`
-	Rclass                            string                  `json:"rclass"`
-	PackageType                       string                  `hcl:"package_type" json:"packageType,omitempty"`
-	Url                               string                  `hcl:"url" json:"url"`
-	Username                          string                  `hcl:"username" json:"username,omitempty"`
-	Password                          string                  `hcl:"password" json:"password,omitempty"`
-	Proxy                             string                  `hcl:"proxy" json:"proxy"`
-	Description                       string                  `hcl:"description" json:"description,omitempty"`
-	Notes                             string                  `hcl:"notes" json:"notes,omitempty"`
-	IncludesPattern                   string                  `hcl:"includes_pattern" json:"includesPattern,omitempty"`
-	ExcludesPattern                   string                  `hcl:"excludes_pattern" json:"excludesPattern,omitempty"`
-	RepoLayoutRef                     string                  `hcl:"repo_layout_ref" json:"repoLayoutRef,omitempty"`
-	HardFail                          *bool                   `hcl:"hard_fail" json:"hardFail,omitempty"`
-	Offline                           *bool                   `hcl:"offline" json:"offline,omitempty"`
-	BlackedOut                        *bool                   `hcl:"blacked_out" json:"blackedOut,omitempty"`
-	XrayIndex                         *bool                   `hcl:"xray_index" json:"xrayIndex,omitempty"`
-	PropagateQueryParams              bool                    `hcl:"propagate_query_params" json:"propagateQueryParams"`
-	PriorityResolution                bool                    `hcl:"priority_resolution" json:"priorityResolution"`
-	StoreArtifactsLocally             *bool                   `hcl:"store_artifacts_locally" json:"storeArtifactsLocally,omitempty"`
-	SocketTimeoutMillis               int                     `hcl:"socket_timeout_millis" json:"socketTimeoutMillis,omitempty"`
-	LocalAddress                      string                  `hcl:"local_address" json:"localAddress,omitempty"`
-	RetrievalCachePeriodSecs          int                     `hcl:"retrieval_cache_period_seconds" json:"retrievalCachePeriodSecs,omitempty"`
+	Key                      string `hcl:"key" json:"key,omitempty"`
+	Rclass                   string `json:"rclass"`
+	PackageType              string `hcl:"package_type" json:"packageType,omitempty"`
+	Url                      string `hcl:"url" json:"url"`
+	Username                 string `hcl:"username" json:"username,omitempty"`
+	Password                 string `hcl:"password" json:"password,omitempty"`
+	Proxy                    string `hcl:"proxy" json:"proxy"`
+	Description              string `hcl:"description" json:"description,omitempty"`
+	Notes                    string `hcl:"notes" json:"notes,omitempty"`
+	IncludesPattern          string `hcl:"includes_pattern" json:"includesPattern,omitempty"`
+	ExcludesPattern          string `hcl:"excludes_pattern" json:"excludesPattern,omitempty"`
+	RepoLayoutRef            string `hcl:"repo_layout_ref" json:"repoLayoutRef,omitempty"`
+	HardFail                 *bool  `hcl:"hard_fail" json:"hardFail,omitempty"`
+	Offline                  *bool  `hcl:"offline" json:"offline,omitempty"`
+	BlackedOut               *bool  `hcl:"blacked_out" json:"blackedOut,omitempty"`
+	XrayIndex                *bool  `hcl:"xray_index" json:"xrayIndex,omitempty"`
+	PropagateQueryParams     bool   `hcl:"propagate_query_params" json:"propagateQueryParams"`
+	PriorityResolution       bool   `hcl:"priority_resolution" json:"priorityResolution"`
+	StoreArtifactsLocally    *bool  `hcl:"store_artifacts_locally" json:"storeArtifactsLocally,omitempty"`
+	SocketTimeoutMillis      int    `hcl:"socket_timeout_millis" json:"socketTimeoutMillis,omitempty"`
+	LocalAddress             string `hcl:"local_address" json:"localAddress,omitempty"`
+	RetrievalCachePeriodSecs int    `hcl:"retrieval_cache_period_seconds" json:"retrievalCachePeriodSecs,omitempty"`
 	// doesn't appear in the body when calling get. Hence no HCL
 	FailedRetrievalCachePeriodSecs    int                     `json:"failedRetrievalCachePeriodSecs,omitempty"`
 	MissedRetrievalCachePeriodSecs    int                     `hcl:"missed_cache_period_seconds" json:"missedRetrievalCachePeriodSecs,omitempty"`
@@ -103,7 +103,7 @@ type VirtualRepositoryBaseParams struct {
 	ExcludesPattern                               string   `hcl:"excludes_pattern" json:"excludesPattern,omitempty"`
 	RepoLayoutRef                                 string   `hcl:"repo_layout_ref" json:"repoLayoutRef,omitempty"`
 	Repositories                                  []string `hcl:"repositories" json:"repositories,omitempty"`
-	ArtifactoryRequestsCanRetrieveRemoteArtifacts bool    `hcl:"artifactory_requests_can_retrieve_remote_artifacts" json:"artifactoryRequestsCanRetrieveRemoteArtifacts,omitempty"`
+	ArtifactoryRequestsCanRetrieveRemoteArtifacts bool     `hcl:"artifactory_requests_can_retrieve_remote_artifacts" json:"artifactoryRequestsCanRetrieveRemoteArtifacts,omitempty"`
 	DefaultDeploymentRepo                         string   `hcl:"default_deployment_repo" json:"defaultDeploymentRepo,omitempty"`
 }
 
@@ -575,7 +575,7 @@ var baseVirtualRepoSchema = map[string]*schema.Schema{
 	"artifactory_requests_can_retrieve_remote_artifacts": {
 		Type:     schema.TypeBool,
 		Optional: true,
-		Default: false,
+		Default:  false,
 	},
 	"default_deployment_repo": {
 		Type:     schema.TypeString,
@@ -628,33 +628,32 @@ func packBaseRemoteRepo(d *schema.ResourceData, repo RemoteRepositoryBaseParams)
 	}
 	return setValue
 }
-func unpackBaseLocalRepo(s *schema.ResourceData) LocalRepositoryBaseParams {
+func unpackBaseLocalRepo(s *schema.ResourceData, packageType string) LocalRepositoryBaseParams {
 	d := &ResourceData{s}
-
 	return LocalRepositoryBaseParams{
-		Rclass:                          "local",
-		Key:                             d.getString("key", false),
-		PackageType:                     "alpine",
-		Description:                     d.getString("description", false),
-		Notes:                           d.getString("notes", false),
-		IncludesPattern:                 d.getString("includes_pattern", false),
-		ExcludesPattern:                 d.getString("excludes_pattern", false),
-		RepoLayoutRef:                   d.getString("repo_layout_ref", false),
-		BlackedOut:                      d.getBoolRef("blacked_out", false),
-		ArchiveBrowsingEnabled:          d.getBoolRef("archive_browsing_enabled", false),
-		PropertySets:                    d.getSet("property_sets"),
-		OptionalIndexCompressionFormats: d.getList("index_compression_formats"),
-		XrayIndex:                       d.getBoolRef("xray_index", false),
+		Rclass:                 "local",
+		Key:                    d.getString("key", false),
+		PackageType:            packageType,
+		Description:            d.getString("description", false),
+		Notes:                  d.getString("notes", false),
+		IncludesPattern:        d.getString("includes_pattern", false),
+		ExcludesPattern:        d.getString("excludes_pattern", false),
+		RepoLayoutRef:          d.getString("repo_layout_ref", false),
+		BlackedOut:             d.getBoolRef("blacked_out", false),
+		ArchiveBrowsingEnabled: d.getBoolRef("archive_browsing_enabled", false),
+		PropertySets:           d.getSet("property_sets"),
+		XrayIndex:              d.getBoolRef("xray_index", false),
+		DownloadRedirect:       d.getBoolRef("download_direct", false),
 	}
 }
-func unpackBaseRemoteRepo(s *schema.ResourceData) RemoteRepositoryBaseParams {
+func unpackBaseRemoteRepo(s *schema.ResourceData, packageType string) RemoteRepositoryBaseParams {
 	d := &ResourceData{s}
 
 	repo := RemoteRepositoryBaseParams{
 		Rclass: "remote",
 		Key:    d.getString("key", false),
 		//must be set independently
-		PackageType:              "invalid",
+		PackageType:              packageType,
 		Url:                      d.getString("url", false),
 		Username:                 d.getString("username", true),
 		Password:                 d.getString("password", true),
@@ -717,21 +716,7 @@ func unpackBaseVirtRepo(s *schema.ResourceData) VirtualRepositoryBaseParams {
 	}
 }
 
-func packBaseVirtRepo(d *schema.ResourceData, repo VirtualRepositoryBaseParams) Lens {
-	setValue := mkLens(d)
 
-	setValue("key", repo.Key)
-	setValue("package_type", repo.PackageType)
-	setValue("description", repo.Description)
-	setValue("notes", repo.Notes)
-	setValue("includes_pattern", repo.IncludesPattern)
-	setValue("excludes_pattern", repo.ExcludesPattern)
-	setValue("repo_layout_ref", repo.RepoLayoutRef)
-	setValue("artifactory_requests_can_retrieve_remote_artifacts", repo.ArtifactoryRequestsCanRetrieveRemoteArtifacts)
-	setValue("default_deployment_repo", repo.DefaultDeploymentRepo)
-	setValue("repositories", repo.Repositories)
-	return setValue
-}
 
 // universalUnpack - todo implement me
 func universalUnpack(payload reflect.Type, s *schema.ResourceData) (interface{}, string, error) {
@@ -772,14 +757,6 @@ func universalUnpack(payload reflect.Type, s *schema.ResourceData) (interface{},
 
 type AutoMapper func(field reflect.StructField, thing reflect.Value) map[string]interface{}
 
-func checkForHcl(mapper AutoMapper) AutoMapper {
-	return func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
-		if field.Tag.Get("hcl") != "" {
-			return mapper(field, thing)
-		}
-		return map[string]interface{}{}
-	}
-}
 
 func findInspector(kind reflect.Kind) AutoMapper {
 	switch kind {
@@ -788,7 +765,7 @@ func findInspector(kind reflect.Kind) AutoMapper {
 			return lookup(t.Interface())
 		}
 	case reflect.Ptr:
-		return checkForHcl(func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
+		return func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
 			deref := reflect.Indirect(thing)
 			if deref.CanAddr() {
 				result := deref.Interface()
@@ -796,23 +773,39 @@ func findInspector(kind reflect.Kind) AutoMapper {
 					result = []interface{}{lookup(deref.Interface())}
 				}
 				return map[string]interface{}{
-					field.Tag.Get("hcl"): result,
+					fieldToHcl(field): result,
 				}
 			}
 			return map[string]interface{}{}
-		})
-	case reflect.Slice:
-		return checkForHcl(func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
-			return map[string]interface{}{
-				field.Tag.Get("hcl"): castToInterfaceArr(thing.Interface().([]string)),
-			}
-		})
-	}
-	return checkForHcl(func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
-		return map[string]interface{}{
-			field.Tag.Get("hcl"): thing.Interface(),
 		}
-	})
+	case reflect.Slice:
+		return func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
+			return map[string]interface{}{
+				fieldToHcl(field): castToInterfaceArr(thing.Interface().([]string)),
+			}
+		}
+	}
+	return func(field reflect.StructField, thing reflect.Value) map[string]interface{} {
+		return map[string]interface{}{
+			fieldToHcl(field): thing.Interface(),
+		}
+	}
+}
+func fieldToHcl(field reflect.StructField) string {
+
+	if field.Tag.Get("hcl") != "" {
+		return field.Tag.Get("hcl")
+	}
+	var lowerFields []string
+	rgx := regexp.MustCompile("([A-Z][a-z]+)")
+	fields := rgx.FindAllStringSubmatch(field.Name, -1)
+	for _, matches := range fields {
+		for _, match := range matches[1:] {
+			lowerFields = append(lowerFields, strings.ToLower(match))
+		}
+	}
+	result := strings.Join(lowerFields, "_")
+	return result
 }
 
 func lookup(payload interface{}) map[string]interface{} {
@@ -829,28 +822,51 @@ func lookup(payload interface{}) map[string]interface{} {
 		thing := v.Field(i)
 		typeInspector := findInspector(thing.Kind())
 		for key, value := range typeInspector(field, thing) {
-			values[key] = value
+			if _, ok := values[key]; !ok {
+				values[key] = value
+			}
 		}
 	}
 	return values
 }
+func anyHclPredicate(predicates ...HclPredicate) HclPredicate {
+	return func(hcl string) bool{
+		for _, predicate := range predicates {
+			if predicate(hcl) {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+
+var defaultPacker = universalPack(func (hcl string) bool {
+	return strings.ToLower(hcl) != "class" && strings.ToLower(hcl) != "rclass"
+})
+
 // universalPack consider making this a function that takes a predicate of what to include and returns
 // a function that does the job. This would allow for the legacy code to specify which keys to keep and not
-func universalPack(payload interface{}, d *schema.ResourceData) error {
-	setValue := mkLens(d)
+func universalPack(predicate HclPredicate) func(payload interface{}, d *schema.ResourceData) error {
 
-	var errors []error
+	return func(payload interface{}, d *schema.ResourceData) error {
+		setValue := mkLens(d)
 
-	values := lookup(payload)
+		var errors []error
 
-	for hcl, value := range values {
-		errors = setValue(hcl, value)
+		values := lookup(payload)
+
+		for hcl, value := range values {
+			if predicate != nil && predicate(hcl) {
+				errors = setValue(hcl, value)
+			}
+		}
+
+		if errors != nil && len(errors) > 0 {
+			return fmt.Errorf("failed saving state %q", errors)
+		}
+		return nil
 	}
-
-	if errors != nil && len(errors) > 0 {
-		return fmt.Errorf("failed saving state %q", errors)
-	}
-	return nil
 }
 
 func mkResourceSchema(skeema map[string]*schema.Schema, packer PackFunc, unpack UnpackFunc, constructor Constructor) *schema.Resource {

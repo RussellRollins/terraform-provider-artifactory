@@ -119,6 +119,14 @@ var randomInt = func() func() int {
 	return rand.Int
 }()
 
+func randBool() bool {
+	return randomInt()%2 == 0
+}
+
+func randSelect(items ...interface{}) interface{} {
+	return items[randomInt()%len(items)]
+}
+
 func mergeMaps(schemata ...map[string]interface{}) map[string]interface{} {
 	result := map[string]interface{}{}
 	for _, schma := range schemata {
@@ -154,6 +162,17 @@ func mkNames(name, resource string) (int, string, string) {
 }
 
 type Lens func(key string, value interface{}) []error
+
+type Schema map[string]*schema.Schema
+
+func schemaHasKey(skeema map[string]*schema.Schema) HclPredicate {
+	return func(key string) bool {
+		_, ok := skeema[key]
+		return ok
+	}
+}
+
+type HclPredicate func(hcl string) bool
 
 func mkLens(d *schema.ResourceData) Lens {
 	var errors []error

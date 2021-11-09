@@ -1,12 +1,8 @@
 package artifactory
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/jfrog/jfrog-client-go/artifactory/services"
 )
-
 
 var legacyLocalSchema = map[string]*schema.Schema{
 	"key": {
@@ -130,28 +126,48 @@ var legacyLocalSchema = map[string]*schema.Schema{
 }
 
 func resourceArtifactoryLocalRepository() *schema.Resource {
-	return mkResourceSchema(legacyLocalSchema, saveLocalRepoState, unmarshalLocalRepository, func() interface{} {
+	return mkResourceSchema(legacyLocalSchema, universalPack(schemaHasKey(legacyLocalSchema)), unmarshalLocalRepository, func() interface{} {
 		return &MessyLocalRepo{
-			LocalRepositoryBaseParams: services.LocalRepositoryBaseParams{
-				Rclass:      "local",
+			LocalRepositoryBaseParams: LocalRepositoryBaseParams{
+				Rclass: "local",
 			},
 		}
 	})
 }
 
+type CommonMavenGradleLocalRepositoryParams struct {
+	MaxUniqueSnapshots           int    `json:"maxUniqueSnapshots,omitempty"`
+	HandleReleases               *bool  `json:"handleReleases,omitempty"`
+	HandleSnapshots              *bool  `json:"handleSnapshots,omitempty"`
+	SuppressPomConsistencyChecks *bool  `json:"suppressPomConsistencyChecks,omitempty"`
+	SnapshotVersionBehavior      string `json:"snapshotVersionBehavior,omitempty"`
+	ChecksumPolicyType           string `json:"checksumPolicyType,omitempty"`
+}
+
+type DebianLocalRepositoryParams struct {
+	LocalRepositoryBaseParams
+	DebianTrivialLayout *bool `json:"debianTrivialLayout,omitempty"`
+}
+
+type RpmLocalRepositoryParams struct {
+	LocalRepositoryBaseParams
+	YumRootDepth            int   `json:"yumRootDepth,omitempty"`
+	CalculateYumMetadata    *bool `json:"calculateYumMetadata,omitempty"`
+	EnableFileListsIndexing *bool `json:"enableFileListsIndexing,omitempty"`
+}
+
 type MessyLocalRepo struct {
-	services.LocalRepositoryBaseParams
-	services.CommonMavenGradleLocalRepositoryParams
-	services.DebianLocalRepositoryParams
-	services.DockerLocalRepositoryParams
-	services.RpmLocalRepositoryParams
+	LocalRepositoryBaseParams
+	CommonMavenGradleLocalRepositoryParams
+	DebianLocalRepositoryParams
+	DockerLocalRepositoryParams
+	RpmLocalRepositoryParams
 	ForceNugetAuthentication bool `json:"forceNugetAuthentication"`
 }
 
 func unmarshalLocalRepository(data *schema.ResourceData) (interface{}, string, error) {
 	d := &ResourceData{ResourceData: data}
 	repo := MessyLocalRepo{}
-
 	repo.Rclass = "local"
 	repo.Key = d.getString("key", false)
 	repo.PackageType = d.getString("package_type", false)
@@ -167,6 +183,9 @@ func unmarshalLocalRepository(data *schema.ResourceData) (interface{}, string, e
 	repo.YumRootDepth = d.getInt("yum_root_depth", false)
 	repo.ArchiveBrowsingEnabled = d.getBoolRef("archive_browsing_enabled", false)
 	repo.DockerApiVersion = d.getString("docker_api_verision", false)
+	if repo.DockerApiVersion == "" {
+		repo.DockerApiVersion = "V2" // for backward compatibility
+	}
 	repo.EnableFileListsIndexing = d.getBoolRef("enable_file_lists_indexing", false)
 	repo.PropertySets = d.getSet("property_sets")
 	repo.HandleReleases = d.getBoolRef("handle_releases", false)
@@ -179,43 +198,4 @@ func unmarshalLocalRepository(data *schema.ResourceData) (interface{}, string, e
 	repo.ForceNugetAuthentication = d.getBool("force_nuget_authentication", false)
 
 	return repo, repo.Key, nil
-}
-
-func saveLocalRepoState(r interface{}, d *schema.ResourceData) error {
-
-	repo := r.(*MessyLocalRepo)
-	setValue := mkLens(d)
-
-	setValue("key", repo.Key)
-	// type 'yum' is not to be supported, as this is really of type 'rpm'. When 'yum' is used on create, RT will
-	// respond with 'rpm' and thus confuse TF into think there has been a state change.
-	setValue("package_type", repo.PackageType)
-	setValue("description", repo.Description)
-	setValue("notes", repo.Notes)
-	setValue("includes_pattern", repo.IncludesPattern)
-	setValue("excludes_pattern", repo.ExcludesPattern)
-	setValue("repo_layout_ref", repo.RepoLayoutRef)
-	setValue("debian_trivial_layout", repo.DebianTrivialLayout)
-	setValue("max_unique_tags", repo.MaxUniqueTags)
-	setValue("blacked_out", repo.BlackedOut)
-	setValue("archive_browsing_enabled", repo.ArchiveBrowsingEnabled)
-	setValue("calculate_yum_metadata", repo.CalculateYumMetadata)
-	setValue("yum_root_depth", repo.YumRootDepth)
-	setValue("docker_api_version", repo.DockerApiVersion)
-	setValue("enable_file_lists_indexing", repo.EnableFileListsIndexing)
-	setValue("property_sets", schema.NewSet(schema.HashString, castToInterfaceArr(repo.PropertySets)))
-	setValue("handle_releases", repo.HandleReleases)
-	setValue("handle_snapshots", repo.HandleSnapshots)
-	setValue("checksum_policy_type", repo.ChecksumPolicyType)
-	setValue("max_unique_snapshots", repo.MaxUniqueSnapshots)
-	setValue("snapshot_version_behavior", repo.SnapshotVersionBehavior)
-	setValue("suppress_pom_consistency_checks", repo.SuppressPomConsistencyChecks)
-	setValue("xray_index", repo.XrayIndex)
-	errors := setValue("force_nuget_authentication", repo.ForceNugetAuthentication)
-
-	if errors != nil && len(errors) > 0 {
-		return fmt.Errorf("failed saving state for local repos %q", errors)
-	}
-
-	return nil
 }

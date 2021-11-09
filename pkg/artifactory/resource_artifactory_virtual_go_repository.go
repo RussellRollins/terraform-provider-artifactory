@@ -33,7 +33,7 @@ var goVirtualSchema = mergeSchema(baseVirtualRepoSchema, map[string]*schema.Sche
 })
 
 func resourceArtifactoryGoVirtualRepository() *schema.Resource {
-	return mkResourceSchema(goVirtualSchema, universalPack, unpackGoVirtualRepository, func() interface{} {
+	return mkResourceSchema(goVirtualSchema, defaultPacker, unpackGoVirtualRepository, func() interface{} {
 		return &GoVirtualRepositoryParams{
 			VirtualRepositoryBaseParams: VirtualRepositoryBaseParams{
 				Rclass:      "virtual",
@@ -55,4 +55,3 @@ func unpackGoVirtualRepository(s *schema.ResourceData) (interface{}, string, err
 	repo.PackageType = "go"
 	return &repo, repo.Key, nil
 }
-
